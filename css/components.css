@@ -1,1 +1,190 @@
-/* Component-specific overrides can go here. */
+body{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(112,225,173,.12),transparent 30%),
+    radial-gradient(circle at 88% 18%,rgba(242,201,109,.10),transparent 28%),
+    var(--bg);
+}
+
+.app{
+  position:relative;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 4% 2%,rgba(112,225,173,.20),transparent 32%),
+    radial-gradient(circle at 94% 8%,rgba(242,201,109,.15),transparent 30%),
+    linear-gradient(180deg,#0a211c 0%,var(--bg) 72%);
+}
+
+.app::before,.app::after{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.14;
+  pointer-events:none;
+}
+
+.app::before{background:var(--accent);inset:18% auto auto -80px}
+.app::after{background:var(--accent2);inset:auto -90px 18% auto}
+
+.top{
+  background:rgba(6,21,18,.74);
+  border-bottom-color:rgba(214,255,235,.08);
+}
+
+.logo{
+  background:linear-gradient(145deg,var(--accent),#b8f3d5 60%,var(--accent2));
+  color:#0b3024;
+  box-shadow:0 10px 28px rgba(112,225,173,.20);
+  transform:rotate(-3deg);
+}
+
+[dir="rtl"] .logo{transform:rotate(3deg)}
+
+.card{
+  background:linear-gradient(150deg,rgba(25,61,52,.92),rgba(12,38,32,.86));
+  border-color:rgba(214,255,235,.11);
+  box-shadow:0 18px 48px rgba(0,12,9,.24);
+}
+
+.glass{
+  background:
+    radial-gradient(circle at 90% 10%,rgba(242,201,109,.16),transparent 35%),
+    linear-gradient(145deg,rgba(112,225,173,.16),rgba(20,58,49,.88));
+}
+
+.wizard-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 100% 0,rgba(242,201,109,.14),transparent 32%),
+    linear-gradient(145deg,rgba(24,67,55,.96),rgba(10,35,29,.94));
+}
+
+.wizard-card::after{
+  content:"";
+  position:absolute;
+  width:110px;
+  height:110px;
+  border:1px solid rgba(242,201,109,.13);
+  border-radius:50%;
+  top:-48px;
+  inset-inline-end:-38px;
+}
+
+.wizard-head{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:13px;
+  align-items:start;
+  margin-bottom:15px;
+}
+
+.growth-icon{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border-radius:16px 16px 7px 16px;
+  background:linear-gradient(145deg,var(--accent2),#ffe7a8);
+  color:#3a2a05;
+  font-size:22px;
+  font-weight:900;
+  box-shadow:0 10px 24px rgba(242,201,109,.16);
+}
+
+[dir="rtl"] .growth-icon{transform:scaleX(-1)}
+
+.eyebrow{
+  color:var(--accent2);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.05em;
+  margin-bottom:3px;
+}
+
+.wizard-card .title{margin-bottom:3px}
+.wizard-card .desc{margin-bottom:0}
+.wizard-card .steps{margin:0 0 18px}
+
+.dot{height:7px;background:rgba(214,255,235,.10)}
+.dot.on{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+input,select{
+  background:rgba(4,22,18,.58);
+  border-color:rgba(214,255,235,.12);
+}
+
+input:focus,select:focus{
+  border-color:rgba(112,225,173,.75);
+  box-shadow:0 0 0 4px rgba(112,225,173,.09);
+}
+
+.metric{
+  background:linear-gradient(145deg,rgba(112,225,173,.075),rgba(255,255,255,.025));
+  border-color:rgba(214,255,235,.10);
+}
+
+.metric:nth-child(2n){
+  background:linear-gradient(145deg,rgba(242,201,109,.075),rgba(255,255,255,.025));
+}
+
+.btn{
+  background:linear-gradient(135deg,var(--accent),#9aebc5);
+  color:#09281f;
+  box-shadow:0 10px 24px rgba(112,225,173,.12);
+}
+
+.btn.sec{background:rgba(143,216,207,.09)}
+.chip{background:rgba(4,22,18,.55)}
+.chip.active{background:rgba(112,225,173,.13);border-color:rgba(112,225,173,.60)}
+
+.notice{
+  background:linear-gradient(145deg,rgba(112,225,173,.09),rgba(242,201,109,.06));
+  border-color:rgba(112,225,173,.20);
+}
+
+.barwrap{background:rgba(2,18,14,.64)}
+.bar{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+.tabs{background:rgba(5,20,17,.88)}
+.tab{
+  display:grid;
+  justify-items:center;
+  gap:3px;
+  padding:7px 4px;
+}
+
+.tabicon{
+  display:grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  border-radius:9px;
+  color:var(--muted);
+  font-size:17px;
+  line-height:1;
+}
+
+.tab.active{
+  background:rgba(112,225,173,.11);
+  border-color:rgba(112,225,173,.18);
+  color:#eafff4;
+}
+
+.tab.active .tabicon{
+  color:#173c30;
+  background:linear-gradient(145deg,var(--accent),#bdf4d8);
+  box-shadow:0 6px 16px rgba(112,225,173,.16);
+}
+
+.good{color:var(--accent)}
+.blue{color:var(--accent3)}
+.yellow{color:var(--accent2)}
+
+@media(max-width:430px){
+  .wizard-head{gap:10px}
+  .growth-icon{width:40px;height:40px;border-radius:14px 14px 6px 14px}
+}
