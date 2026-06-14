@@ -55,6 +55,31 @@
       });
       equal(state.expenses[0].category, 'food');
     });
+    test('ترحيل الميزانيات والدفعات المتكررة', () => {
+      const state = MezanStorage.normalize({
+        settings: { lang: 'ar', currency: 'QAR' },
+        profile: { salary: 9000, salaryDate: '2026-06-25' },
+        expenses: [],
+        categoryBudgets: { food: 1200 },
+        recurringPayments: [{ name: 'إنترنت', amount: 250, day: 31, category: 'فواتير' }]
+      });
+      equal(state.categoryBudgets.food, 1200);
+      equal(state.recurringPayments[0].category, 'bills');
+      equal(state.recurringPayments[0].day, 31);
+    });
+    test('دورة الراتب من يوم 25', () => {
+      const cycle = MezanCalculations.salaryCycle('2026-01-25', new Date(2026, 5, 14));
+      equal(cycle.start, '2026-05-25');
+      equal(cycle.end, '2026-06-24');
+      equal(MezanCalculations.inCycle('2026-06-01', cycle), true);
+      equal(MezanCalculations.inCycle('2026-06-25', cycle), false);
+    });
+    test('دورة راتب يوم 31 تتوافق مع الشهر القصير', () => {
+      const cycle = MezanCalculations.salaryCycle('2026-01-31', new Date(2026, 2, 15));
+      equal(cycle.start, '2026-02-28');
+      equal(cycle.end, '2026-03-30');
+      equal(MezanCalculations.recurringDate(31, cycle), '2026-02-28');
+    });
     test('رفض نسخة احتياطية غير صالحة', () => {
       let rejected = false;
       try { MezanStorage.parseBackup('[]'); } catch { rejected = true; }

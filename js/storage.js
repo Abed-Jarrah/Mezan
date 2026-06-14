@@ -2,6 +2,7 @@ const MezanStorage = (() => {
   const KEY = 'mezan_plan_v3';
   const LANGUAGES = new Set(['ar', 'en']);
   const CURRENCIES = new Set(['QAR', 'SAR', 'AED', 'KWD', 'BHD', 'OMR', 'JOD', 'USD', 'EUR', 'TRY']);
+  const EXPENSE_KINDS = new Set(['regular', 'recurring', 'exceptional', 'giving']);
   const CATEGORY_ALIASES = {
     auto: 'auto',
     'تلقائي': 'auto',
@@ -30,10 +31,22 @@ const MezanStorage = (() => {
   const text = (value, maxLength = 120) =>
     typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 
+  const date = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : '';
+
+  const categoryBudgets = source => ({
+    food: number(source?.food),
+    transport: number(source?.transport),
+    bills: number(source?.bills),
+    fun: number(source?.fun),
+    other: number(source?.other)
+  });
+
   function defaults(settings = {}) {
     return {
       profile: null,
       expenses: [],
+      categoryBudgets: categoryBudgets(),
+      recurringPayments: [],
       settings: {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR'
@@ -54,6 +67,7 @@ const MezanStorage = (() => {
     normalized.rentPaid = profile.rentPaid === 'yes' ? 'yes' : 'no';
     normalized.goalType = profile.goalType === 'specific' ? 'specific' : 'general';
     normalized.goalName = text(profile.goalName, 80);
+    normalized.salaryDate = date(profile.salaryDate) || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`;
     return normalized;
   }
 
@@ -61,14 +75,33 @@ const MezanStorage = (() => {
     if (!expense || typeof expense !== 'object' || Array.isArray(expense)) return null;
     const amount = number(expense.amount);
     if (!amount) return null;
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(expense.date || '') ? expense.date : '';
-    if (!date) return null;
+    const expenseDate = date(expense.date);
+    if (!expenseDate) return null;
     return {
       id: Number.isSafeInteger(expense.id) ? expense.id : Date.now() + index,
       amount,
       merchant: text(expense.merchant, 100) || 'Expense',
       category: CATEGORY_ALIASES[expense.category] || 'other',
-      date
+      date: expenseDate,
+      kind: EXPENSE_KINDS.has(expense.kind) ? expense.kind : 'regular',
+      subtype: text(expense.subtype, 40),
+      recurringId: Number.isSafeInteger(expense.recurringId) ? expense.recurringId : null,
+      cycleKey: date(expense.cycleKey)
+    };
+  }
+
+  function normalizeRecurring(payment, index) {
+    if (!payment || typeof payment !== 'object' || Array.isArray(payment)) return null;
+    const amount = number(payment.amount);
+    const name = text(payment.name, 80);
+    if (!amount || !name) return null;
+    return {
+      id: Number.isSafeInteger(payment.id) ? payment.id : Date.now() + index,
+      name,
+      amount,
+      category: CATEGORY_ALIASES[payment.category] || 'other',
+      day: Math.min(31, Math.max(1, Math.round(number(payment.day) || 1))),
+      active: payment.active !== false
     };
   }
 
@@ -80,6 +113,10 @@ const MezanStorage = (() => {
     base.profile = normalizeProfile(raw.profile);
     base.expenses = Array.isArray(raw.expenses)
       ? raw.expenses.map(normalizeExpense).filter(Boolean).slice(0, 5000)
+      : [];
+    base.categoryBudgets = categoryBudgets(raw.categoryBudgets);
+    base.recurringPayments = Array.isArray(raw.recurringPayments)
+      ? raw.recurringPayments.map(normalizeRecurring).filter(Boolean).slice(0, 200)
       : [];
     return base;
   }
