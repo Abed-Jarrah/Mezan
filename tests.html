@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mezan Tests</title>
+  <style>
+    body{font-family:system-ui,sans-serif;background:#070a10;color:#f4f8ff;max-width:760px;margin:40px auto;padding:20px}
+    h1{margin-bottom:20px}.test{padding:12px;margin:8px 0;border-radius:10px;background:#131d2d}.pass{border-right:4px solid #18c8a3}.fail{border-right:4px solid #ff6b83}
+  </style>
+</head>
+<body>
+  <h1>اختبارات ميزان</h1>
+  <div id="results"></div>
+  <script src="js/storage.js"></script>
+  <script src="js/calculations.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/currency.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const results = document.getElementById('results');
+    function test(name, run) {
+      const row = document.createElement('div');
+      row.className = 'test';
+      try {
+        run();
+        row.classList.add('pass');
+        row.textContent = `نجح: ${name}`;
+      } catch (error) {
+        row.classList.add('fail');
+        row.textContent = `فشل: ${name} - ${error.message}`;
+      }
+      results.appendChild(row);
+    }
+    function equal(actual, expected) {
+      if (actual !== expected) throw new Error(`${actual} !== ${expected}`);
+    }
+
+    test('تعقيم HTML', () => equal(MezanUI.escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;'));
+    test('تنظيف الأرقام', () => equal(MezanCalculations.number('1,250.50'), 1250.5));
+    test('حساب النسبة', () => equal(MezanCalculations.percent(250, 1000), 25));
+    test('حساب الخطة', () => {
+      const totals = MezanCalculations.wizardTotals({ salary: 10000, extraIncome: 500, rent: 3000, saveTarget: 1000 });
+      equal(totals.free, 6500);
+    });
+    test('ترحيل التصنيف القديم', () => {
+      const state = MezanStorage.normalize({
+        settings: { lang: 'ar', currency: 'QAR' },
+        profile: null,
+        expenses: [{ amount: 10, merchant: 'متجر', category: 'طعام وتسوق', date: '2026-06-14' }]
+      });
+      equal(state.expenses[0].category, 'food');
+    });
+    test('رفض نسخة احتياطية غير صالحة', () => {
+      let rejected = false;
+      try { MezanStorage.parseBackup('[]'); } catch { rejected = true; }
+      equal(rejected, true);
+    });
+    test('التاريخ المحلي', () => equal(MezanUI.localDate(new Date(2026, 5, 4)), '2026-06-04'));
+  </script>
+</body>
+</html>

@@ -1,1 +1,9 @@
-// Translation dictionary is currently included in app.js to keep this version stable.
+const MezanTranslations = (() => {
+  function get(dictionary, language, key) {
+    return (dictionary[language] || dictionary.ar)[key] || dictionary.ar[key] || key;
+  }
+
+  const direction = language => language === 'ar' ? 'rtl' : 'ltr';
+
+  return { get, direction };
+})();
