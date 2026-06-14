@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#090d14" />
+  <title>ميزان | Mezan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<main class="app">
+<header class="top"><div class="topin"><div class="brand"><div class="logo" id="logo">م</div><div><h1 id="appName">ميزان</h1><div class="tag" id="tagline">مساعد تخطيط مالي مبني على راتبك</div></div></div><div class="lang"><button id="arBtn" onclick="setLang('ar')">AR</button><button id="enBtn" onclick="setLang('en')">EN</button></div></div></header>
+<section id="onboarding"></section>
+<section id="appArea" class="hidden"><div id="dashboard" class="panel"></div><div id="expense" class="panel hidden"></div><div id="budget" class="panel hidden"></div><div id="settings" class="panel hidden"></div></section>
+</main>
+<nav class="tabs hidden" id="tabs"><div class="tabsin"><button class="tab active" data-tab="dashboard" onclick="showTab('dashboard')" data-i18n="home">الرئيسية</button><button class="tab" data-tab="expense" onclick="showTab('expense')" data-i18n="expense">مصروف</button><button class="tab" data-tab="budget" onclick="showTab('budget')" data-i18n="plan">الخطة</button><button class="tab" data-tab="settings" onclick="showTab('settings')" data-i18n="settings">إعدادات</button></div></nav>
+  <script src="js/storage.js"></script>
+  <script src="js/calculations.js"></script>
+  <script src="js/translations.js"></script>
+  <script src="js/currency.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
