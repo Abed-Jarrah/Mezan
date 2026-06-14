@@ -47,6 +47,8 @@ const MezanStorage = (() => {
       expenses: [],
       categoryBudgets: categoryBudgets(),
       recurringPayments: [],
+      salaryReceipts: [],
+      cycleReports: [],
       settings: {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR'
@@ -105,6 +107,50 @@ const MezanStorage = (() => {
     };
   }
 
+  function normalizeReceipt(receipt, index) {
+    if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) return null;
+    const receiptDate = date(receipt.date);
+    const amount = number(receipt.amount);
+    if (!receiptDate || !amount) return null;
+    return {
+      id: Number.isSafeInteger(receipt.id) ? receipt.id : Date.now() + index,
+      date: receiptDate,
+      amount
+    };
+  }
+
+  function normalizeBreakdown(item) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+    const key = text(item.key, 40);
+    const amount = number(item.amount);
+    return key && amount ? { key, amount } : null;
+  }
+
+  function normalizeReport(report, index) {
+    if (!report || typeof report !== 'object' || Array.isArray(report)) return null;
+    const start = date(report.start);
+    const end = date(report.end);
+    if (!start || !end) return null;
+    return {
+      id: Number.isSafeInteger(report.id) ? report.id : Date.now() + index,
+      start,
+      end,
+      days: Math.max(1, Math.round(number(report.days) || 1)),
+      salary: number(report.salary),
+      spent: number(report.spent),
+      saved: number(report.saved),
+      savedPct: Math.min(100, number(report.savedPct)),
+      topKey: text(report.topKey, 40) || 'other',
+      topAmount: number(report.topAmount),
+      breakdown: Array.isArray(report.breakdown)
+        ? report.breakdown.map(normalizeBreakdown).filter(Boolean).slice(0, 30)
+        : [],
+      expenses: Array.isArray(report.expenses)
+        ? report.expenses.map(normalizeExpense).filter(Boolean).slice(0, 1000)
+        : []
+    };
+  }
+
   function normalize(raw) {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
       throw new Error('Invalid Mezan backup');
@@ -117,6 +163,19 @@ const MezanStorage = (() => {
     base.categoryBudgets = categoryBudgets(raw.categoryBudgets);
     base.recurringPayments = Array.isArray(raw.recurringPayments)
       ? raw.recurringPayments.map(normalizeRecurring).filter(Boolean).slice(0, 200)
+      : [];
+    base.salaryReceipts = Array.isArray(raw.salaryReceipts)
+      ? raw.salaryReceipts.map(normalizeReceipt).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date)).slice(-200)
+      : [];
+    if (!base.salaryReceipts.length && base.profile) {
+      base.salaryReceipts.push({
+        id: Date.now(),
+        date: base.profile.salaryDate,
+        amount: base.profile.salary
+      });
+    }
+    base.cycleReports = Array.isArray(raw.cycleReports)
+      ? raw.cycleReports.map(normalizeReport).filter(Boolean).sort((a, b) => b.start.localeCompare(a.start)).slice(0, 200)
       : [];
     return base;
   }

@@ -42,17 +42,50 @@ const MezanCalculations = (() => {
 
   function inCycle(value, cycle) {
     return /^\d{4}-\d{2}-\d{2}$/.test(value || '') &&
-      value >= cycle.start && value < cycle.endExclusive;
+      value >= cycle.start && (!cycle.endExclusive || value < cycle.endExclusive);
   }
 
   function cycleProgress(cycle, today = new Date()) {
     const start = parseDate(cycle.start);
-    const endExclusive = parseDate(cycle.endExclusive);
+    const endExclusive = parseDate(cycle.endExclusive) || new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
     if (!start || !endExclusive) return { elapsed: 1, total: 1 };
     const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const total = Math.max(1, Math.round((endExclusive - start) / 86400000));
     const elapsed = Math.min(total, Math.max(1, Math.floor((day - start) / 86400000) + 1));
     return { elapsed, total };
+  }
+
+  function receiptCycle(receipts, today = new Date()) {
+    const sorted = Array.isArray(receipts)
+      ? receipts.filter(receipt => parseDate(receipt.date)).slice().sort((a, b) => a.date.localeCompare(b.date))
+      : [];
+    const latest = sorted[sorted.length - 1];
+    const start = latest?.date || dateKey(today);
+    return {
+      key: start,
+      start,
+      end: dateKey(today),
+      endExclusive: '',
+      open: true,
+      salaryDay: parseDate(start)?.getDate() || 1,
+      receipt: latest || null
+    };
+  }
+
+  function closedReceiptCycle(start, nextStart) {
+    const startDate = parseDate(start);
+    const nextDate = parseDate(nextStart);
+    if (!startDate || !nextDate || nextDate <= startDate) return null;
+    const end = new Date(nextDate);
+    end.setDate(end.getDate() - 1);
+    return {
+      key: start,
+      start,
+      end: dateKey(end),
+      endExclusive: nextStart,
+      open: false,
+      salaryDay: startDate.getDate()
+    };
   }
 
   function recurringDate(day, cycle) {
@@ -87,6 +120,8 @@ const MezanCalculations = (() => {
     dateKey,
     parseDate,
     salaryCycle,
+    receiptCycle,
+    closedReceiptCycle,
     inCycle,
     cycleProgress,
     recurringDate

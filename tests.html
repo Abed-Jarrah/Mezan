@@ -67,6 +67,32 @@
       equal(state.recurringPayments[0].category, 'bills');
       equal(state.recurringPayments[0].day, 31);
     });
+    test('ترحيل تاريخ الراتب إلى سجل استلام', () => {
+      const state = MezanStorage.normalize({
+        settings: { lang: 'ar', currency: 'QAR' },
+        profile: { salary: 9000, salaryDate: '2026-05-11' },
+        expenses: []
+      });
+      equal(state.salaryReceipts[0].date, '2026-05-11');
+      equal(state.salaryReceipts[0].amount, 9000);
+    });
+    test('الدورة تبقى مفتوحة حتى الراتب التالي', () => {
+      const cycle = MezanCalculations.receiptCycle([
+        { date: '2026-04-01', amount: 8000 },
+        { date: '2026-05-11', amount: 8000 }
+      ], new Date(2026, 5, 30));
+      equal(cycle.start, '2026-05-11');
+      equal(cycle.end, '2026-06-30');
+      equal(cycle.open, true);
+      equal(MezanCalculations.inCycle('2026-06-30', cycle), true);
+    });
+    test('الراتب التالي يغلق الدورة السابقة', () => {
+      const cycle = MezanCalculations.closedReceiptCycle('2026-04-01', '2026-05-11');
+      equal(cycle.end, '2026-05-10');
+      equal(MezanCalculations.cycleProgress(cycle, new Date(2026, 4, 10)).total, 40);
+      equal(MezanCalculations.inCycle('2026-05-10', cycle), true);
+      equal(MezanCalculations.inCycle('2026-05-11', cycle), false);
+    });
     test('دورة الراتب من يوم 25', () => {
       const cycle = MezanCalculations.salaryCycle('2026-01-25', new Date(2026, 5, 14));
       equal(cycle.start, '2026-05-25');
