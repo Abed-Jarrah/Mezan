@@ -2,159 +2,127 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ميزان" />
   <meta name="theme-color" content="#07090f" />
-  <title>ميزان - مساعد التخطيط المالي</title>
+  <title>ميزان - خطة مالية شخصية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root{
-      --bg:#07090f;--card:#101522;--card2:#151b2b;--muted:#9ca8bd;--text:#eef4ff;
-      --green:#10d4a0;--blue:#60a5fa;--red:#fb7185;--yellow:#f6b93b;--line:#263046;
-      --shadow:0 18px 60px rgba(0,0,0,.35);--radius:22px;
+      --bg:#07090f;--panel:#0f1524;--panel2:#141c2e;--soft:#1a2438;--line:rgba(255,255,255,.09);
+      --text:#f3f7ff;--muted:#9da9bd;--green:#10d4a0;--blue:#60a5fa;--red:#fb7185;--yellow:#f6c453;
+      --radius:22px;--shadow:0 18px 55px rgba(0,0,0,.38);--safe-bottom:env(safe-area-inset-bottom,0px);
     }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    html,body{min-height:100%;background:var(--bg);font-family:Cairo,system-ui,sans-serif;color:var(--text)}
-    body{overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    html,body{min-height:100%;background:var(--bg);font-family:Cairo,system-ui,sans-serif;color:var(--text);overflow-x:hidden}
+    body{overscroll-behavior:none;-webkit-font-smoothing:antialiased}
     button,input,select{font:inherit} input,select{font-size:16px!important}
-    .app{max-width:560px;margin:0 auto;min-height:100vh;padding:18px 14px 96px;background:radial-gradient(circle at top,#17213a 0,#07090f 42%)}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 18px}
-    .brand{display:flex;align-items:center;gap:10px}.logo{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--blue));font-weight:900;color:#071018;box-shadow:0 10px 30px rgba(16,212,160,.22)}
-    h1{font-size:21px;line-height:1.1}.sub{font-size:12px;color:var(--muted);margin-top:3px}.privacy{font-size:11px;color:var(--green);padding:8px 10px;border:1px solid rgba(16,212,160,.35);border-radius:999px;background:rgba(16,212,160,.08);white-space:nowrap}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}.card.flat{box-shadow:none;background:var(--card)}
-    .hero{padding:20px;background:linear-gradient(135deg,rgba(16,212,160,.22),rgba(96,165,250,.16));border:1px solid rgba(16,212,160,.20)}
-    .hero h2{font-size:23px;margin-bottom:8px}.hero p{color:#d4deee;font-size:14px;line-height:1.8}.cta{margin-top:15px;display:flex;gap:10px;flex-wrap:wrap}
-    .btn{border:0;border-radius:15px;padding:12px 14px;background:var(--green);color:#05110d;font-weight:900;cursor:pointer}.btn.secondary{background:#1e293b;color:var(--text);border:1px solid var(--line)}.btn.danger{background:rgba(251,113,133,.13);color:#fecdd3;border:1px solid rgba(251,113,133,.35)}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:13px}.label{font-size:12px;color:var(--muted);margin-bottom:5px}.value{font-size:20px;font-weight:900}.good{color:var(--green)}.bad{color:var(--red)}.blue{color:var(--blue)}.yellow{color:var(--yellow)}
-    .section-title{display:flex;align-items:center;justify-content:space-between;margin:18px 3px 8px}.section-title h3{font-size:16px}.hint{font-size:12px;color:var(--muted)}
-    .progress{height:10px;background:#222b3d;border-radius:999px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:999px;transition:.25s}.bar.red{background:linear-gradient(90deg,var(--yellow),var(--red))}
-    .advice{line-height:1.8;color:#d9e4f6;font-size:14px}.advice strong{color:var(--green)}
-    .form{display:grid;gap:10px}.field{display:grid;gap:6px}.field span{font-size:12px;color:var(--muted)}input,select{width:100%;border:1px solid var(--line);background:#0c111d;color:var(--text);padding:12px;border-radius:14px;outline:none}input:focus,select:focus{border-color:rgba(16,212,160,.7)}
-    .tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(7,9,15,.9);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);padding:9px max(12px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:flex;justify-content:center;gap:8px}.tab{border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:800;padding:9px 12px;border-radius:14px}.tab.active{background:#152033;color:var(--green)}
-    .list{display:grid;gap:9px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px}.row small{display:block;color:var(--muted);margin-top:2px}.pill{font-size:11px;border-radius:999px;padding:5px 8px;background:#162235;color:#cbd5e1}.empty{text-align:center;color:var(--muted);padding:24px 10px;line-height:1.8}.budgetItem{margin-bottom:12px}.budgetTop{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}.hidden{display:none!important}
-    .onboarding{display:grid;gap:12px}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.toast{position:fixed;top:16px;left:14px;right:14px;max-width:520px;margin:auto;background:#102018;border:1px solid rgba(16,212,160,.45);color:#dffcef;border-radius:16px;padding:12px 14px;font-weight:800;box-shadow:var(--shadow);transform:translateY(-130%);transition:.25s;z-index:10}.toast.show{transform:translateY(0)}
-    @media(max-width:380px){.grid,.split{grid-template-columns:1fr}.privacy{display:none}.app{padding-inline:10px}.tab{padding-inline:9px}}
+    button{cursor:pointer} input[type=date]{color-scheme:dark}
+    .shell{width:100%;max-width:480px;margin:0 auto;min-height:100svh;padding:14px 12px calc(88px + var(--safe-bottom));background:radial-gradient(circle at 50% -20%,#1a2744 0,#07090f 52%)}
+    .top{position:sticky;top:0;z-index:5;margin:-14px -12px 12px;padding:14px 12px 10px;background:linear-gradient(180deg,rgba(7,9,15,.98),rgba(7,9,15,.78));backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.04)}
+    .top-inner{display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:480px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{width:42px;height:42px;border-radius:15px;background:linear-gradient(135deg,var(--green),var(--blue));display:grid;place-items:center;font-weight:900;color:#06110e;box-shadow:0 12px 32px rgba(16,212,160,.2);flex:0 0 auto}
+    h1{font-size:19px;line-height:1.1}.sub{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.privacy{font-size:10px;color:var(--green);border:1px solid rgba(16,212,160,.35);background:rgba(16,212,160,.08);border-radius:999px;padding:7px 9px;white-space:nowrap}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.026));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px;margin-bottom:12px}.flat{box-shadow:none;background:rgba(15,21,36,.9)}
+    .hero{padding:18px;background:linear-gradient(135deg,rgba(16,212,160,.22),rgba(96,165,250,.14));border-color:rgba(16,212,160,.22)}.hero h2{font-size:22px;margin-bottom:8px}.hero p{font-size:13px;line-height:1.8;color:#d9e6f7}
+    .steps{display:flex;gap:6px;margin:12px 0}.step-dot{height:7px;flex:1;border-radius:999px;background:#202a3c}.step-dot.active{background:linear-gradient(90deg,var(--green),var(--blue))}
+    .q-title{font-size:18px;font-weight:900;margin-bottom:5px}.q-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}.form{display:grid;gap:10px}.field{display:grid;gap:6px}.field label,.field span{font-size:12px;color:var(--muted)}
+    input,select{width:100%;border:1px solid #26334a;background:#0b111e;color:var(--text);border-radius:15px;padding:12px 13px;outline:none;min-height:48px}input:focus,select:focus{border-color:rgba(16,212,160,.75);box-shadow:0 0 0 3px rgba(16,212,160,.08)}
+    .choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}.chip{border:1px solid #26334a;background:#0b111e;color:var(--text);border-radius:16px;padding:12px;font-weight:800}.chip.active{border-color:rgba(16,212,160,.8);background:rgba(16,212,160,.12);color:#d9fff4}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.btn{border:0;border-radius:16px;min-height:48px;padding:12px 14px;background:var(--green);color:#06110e;font-weight:900}.btn.secondary{background:#1b263a;color:var(--text);border:1px solid var(--line)}.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.btn.full{grid-column:1/-1}.btn.danger{background:rgba(251,113,133,.13);color:#fecdd3;border:1px solid rgba(251,113,133,.35)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:12px;min-width:0}.label{font-size:11px;color:var(--muted);margin-bottom:5px}.value{font-size:19px;font-weight:900;line-height:1.25;word-break:break-word}.good{color:var(--green)}.bad{color:var(--red)}.blue{color:var(--blue)}.yellow{color:var(--yellow)}
+    .section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 3px 8px}.section-title h3{font-size:16px}.hint{font-size:11px;color:var(--muted)}
+    .progress{height:10px;background:#222b3d;border-radius:999px;overflow:hidden;margin-top:9px}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:999px;transition:.3s}.bar.red{background:linear-gradient(90deg,var(--yellow),var(--red))}
+    .advice{font-size:13px;line-height:1.85;color:#dce8f7}.advice strong{color:var(--green)}
+    .budgetItem{margin-bottom:12px}.budgetTop{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:7px;color:#dce8f7}.budgetTop b{font-size:13px}.list{display:grid;gap:9px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:12px}.row small{display:block;color:var(--muted);margin-top:2px}.pill{font-size:10px;border-radius:999px;padding:5px 8px;background:#172238;color:#cbd5e1;white-space:nowrap}.empty{text-align:center;color:var(--muted);padding:22px 10px;line-height:1.8}.hidden{display:none!important}
+    .tabs{position:fixed;z-index:20;bottom:0;left:0;right:0;background:rgba(7,9,15,.92);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);padding:8px 10px calc(8px + var(--safe-bottom));display:flex;justify-content:center;gap:6px}.tabs-inner{width:100%;max-width:480px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.tab{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:900;padding:9px 4px;border-radius:14px}.tab.active{background:#162238;color:var(--green)}
+    .toast{position:fixed;top:14px;left:12px;right:12px;max-width:480px;margin:auto;background:#102018;border:1px solid rgba(16,212,160,.45);color:#dffcef;border-radius:16px;padding:12px 14px;font-size:13px;font-weight:800;box-shadow:var(--shadow);transform:translateY(-140%);transition:.25s;z-index:30}.toast.show{transform:translateY(0)}
+    @media(max-width:370px){.shell{padding-left:9px;padding-right:9px}.top{margin-left:-9px;margin-right:-9px}.privacy{display:none}.grid,.split,.choice{grid-template-columns:1fr}.value{font-size:17px}.hero h2{font-size:20px}.btns{grid-template-columns:1fr}.tabs-inner{gap:4px}.tab{font-size:10px}}
+    @media(min-width:700px){.shell{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}}
   </style>
 </head>
 <body>
   <div class="toast" id="toast"></div>
-  <main class="app">
-    <header class="top">
-      <div class="brand"><div class="logo">م</div><div><h1>ميزان</h1><div class="sub">مساعد التخطيط المالي الشخصي</div></div></div>
-      <div class="privacy">بياناتك على جهازك</div>
-    </header>
+  <main class="shell">
+    <header class="top"><div class="top-inner"><div class="brand"><div class="logo">م</div><div><h1>ميزان</h1><div class="sub">مساعد تخطيط مالي مبني على راتبك</div></div></div><div class="privacy">محلي 100%</div></div></header>
 
-    <section id="setup" class="onboarding hidden">
-      <div class="card hero"><h2>ابدأ بخطة، وليس بسجل مصاريف فقط</h2><p>أدخل راتبك وهدفك المالي، وميزان سيقسم ميزانيتك ويخبرك إذا كنت على الطريق الصحيح.</p></div>
-      <div class="card"><div class="form">
-        <div class="field"><span>الراتب الشهري</span><input id="salaryInput" type="number" placeholder="مثال: 8000"></div>
-        <div class="field"><span>اسم الهدف المالي</span><input id="goalNameInput" placeholder="مثال: سيارة، سفر، صندوق طوارئ"></div>
-        <div class="split"><div class="field"><span>مبلغ الهدف</span><input id="goalAmountInput" type="number" placeholder="10000"></div><div class="field"><span>خلال كم شهر؟</span><input id="goalMonthsInput" type="number" placeholder="12"></div></div>
-        <button class="btn" id="saveSetup">ابدأ خطتي المالية</button>
-      </div></div>
-    </section>
+    <section id="onboarding"></section>
 
-    <section id="dashboard" class="page">
-      <div class="card hero"><h2 id="mainInsight">خطة مالية ذكية من راتبك</h2><p id="mainAdvice">أضف راتبك وهدفك حتى يظهر لك التوجيه المالي.</p><div class="cta"><button class="btn" onclick="showPage('settings')">تعديل الخطة</button><button class="btn secondary" onclick="showPage('add')">سجل مصروف</button></div></div>
-      <div class="grid">
-        <div class="metric"><div class="label">المصروف هذا الشهر</div><div class="value bad" id="spentValue">0</div></div>
-        <div class="metric"><div class="label">المتبقي المتوقع</div><div class="value good" id="forecastValue">0</div></div>
-        <div class="metric"><div class="label">الادخار المطلوب</div><div class="value blue" id="savingNeeded">0</div></div>
-        <div class="metric"><div class="label">حالة الميزانية</div><div class="value" id="budgetStatus">-</div></div>
+    <section id="app" class="hidden">
+      <div class="hero card">
+        <h2 id="heroTitle">خطتك المالية جاهزة</h2>
+        <p id="heroText">ميزان لا يعرض المصروفات فقط، بل يقارنها بخطتك وأهدافك ويخبرك إن كنت على الطريق الصحيح.</p>
+        <div class="btns"><button class="btn" onclick="showTab('expense')">أضف مصروف</button><button class="btn secondary" onclick="restartWizard()">تعديل الخطة</button></div>
       </div>
-      <div class="section-title"><h3>🎯 الهدف المالي</h3><span class="hint" id="goalMeta"></span></div>
-      <div class="card flat"><div class="advice" id="goalAdvice"></div><div class="progress"><div class="bar" id="goalBar"></div></div></div>
-      <div class="section-title"><h3>💰 الميزانية الشهرية</h3><span class="hint">المخطط vs الفعلي</span></div>
-      <div class="card flat" id="budgetBreakdown"></div>
-      <div class="section-title"><h3>آخر الحركات</h3><button class="btn secondary" onclick="showPage('transactions')">عرض الكل</button></div>
-      <div class="list" id="latestTx"></div>
-    </section>
 
-    <section id="add" class="page hidden">
-      <div class="card"><h3>سجّل حركة مالية</h3><div class="form" style="margin-top:12px">
-        <div class="field"><span>النوع</span><select id="txType"><option value="expense">مصروف</option><option value="income">دخل إضافي</option><option value="saving">إيداع للهدف</option></select></div>
-        <div class="field"><span>الوصف / التاجر</span><input id="txTitle" placeholder="مثال: Carrefour, Uber, مطعم"></div>
-        <div class="split"><div class="field"><span>المبلغ</span><input id="txAmount" type="number" placeholder="0"></div><div class="field"><span>التصنيف</span><select id="txCategory"></select></div></div>
-        <button class="btn" id="addTxBtn">إضافة الحركة</button>
-      </div></div>
-      <div class="card flat"><div class="advice">💡 التصنيف يقترح تلقائياً حسب اسم التاجر. مثلاً: Uber = مواصلات، Carrefour = تسوق، Coffee = مطاعم وكافيه.</div></div>
-    </section>
-
-    <section id="transactions" class="page hidden"><div class="section-title"><h3>كل الحركات</h3><button class="btn danger" id="clearTx">مسح الحركات</button></div><div class="list" id="allTx"></div></section>
-
-    <section id="settings" class="page hidden">
-      <div class="card"><h3>إعدادات الخطة</h3><div class="form" style="margin-top:12px">
-        <div class="field"><span>الراتب الشهري</span><input id="salarySettings" type="number"></div>
-        <div class="field"><span>اسم الهدف</span><input id="goalNameSettings"></div>
-        <div class="split"><div class="field"><span>مبلغ الهدف</span><input id="goalAmountSettings" type="number"></div><div class="field"><span>عدد الأشهر</span><input id="goalMonthsSettings" type="number"></div></div>
-        <button class="btn" id="saveSettings">حفظ التعديلات</button>
-      </div></div>
-      <div class="card flat"><h3>نسخ احتياطي محلي</h3><p class="advice" style="margin:8px 0 12px">حالياً بدون حسابات أو مزامنة. يمكن تصدير واستيراد البيانات كملف JSON.</p><div class="cta"><button class="btn secondary" id="exportBtn">تصدير البيانات</button><label class="btn secondary" for="importFile">استيراد بيانات</label><input id="importFile" type="file" accept="application/json" class="hidden"></div></div>
+      <div id="dashboard" class="tabPanel"></div>
+      <div id="expense" class="tabPanel hidden"></div>
+      <div id="budget" class="tabPanel hidden"></div>
+      <div id="settings" class="tabPanel hidden"></div>
     </section>
   </main>
 
-  <nav class="tabs"><button class="tab active" data-page="dashboard">الرئيسية</button><button class="tab" data-page="add">إضافة</button><button class="tab" data-page="transactions">الحركات</button><button class="tab" data-page="settings">الخطة</button></nav>
+  <nav class="tabs hidden" id="tabs"><div class="tabs-inner">
+    <button class="tab active" data-tab="dashboard" onclick="showTab('dashboard')">الرئيسية</button>
+    <button class="tab" data-tab="expense" onclick="showTab('expense')">مصروف</button>
+    <button class="tab" data-tab="budget" onclick="showTab('budget')">الخطة</button>
+    <button class="tab" data-tab="settings" onclick="showTab('settings')">إعدادات</button>
+  </div></nav>
 
-  <script>
-    const STORE='mezan_product_mvp_v1';
-    const categories=[
-      {id:'needs',name:'احتياجات أساسية',icon:'🏠',ratio:.50,color:'green'},
-      {id:'savings',name:'ادخار وهدف مالي',icon:'🎯',ratio:.20,color:'blue'},
-      {id:'fun',name:'ترفيه ومطاعم',icon:'🍔',ratio:.15,color:'yellow'},
-      {id:'shopping',name:'تسوق ومواصلات',icon:'🛒',ratio:.15,color:'red'}
-    ];
-    const rules=[[/uber|كريم|careem|taxi|تاكسي/i,'shopping'],[/carrefour|lulu|لولو|سوبر|market|grocery/i,'needs'],[/coffee|cafe|مطعم|restaurant|burger|pizza|قهوة/i,'fun'],[/rent|ايجار|كهرباء|ماء|فاتورة|bill/i,'needs']];
-    let state=load();
-    function load(){try{return JSON.parse(localStorage.getItem(STORE))||defaultState()}catch{return defaultState()}}
-    function defaultState(){return{salary:0,goal:{name:'',amount:0,months:0,saved:0},transactions:[]}}
-    function save(){localStorage.setItem(STORE,JSON.stringify(state))}
-    function money(n){return Number(n||0).toLocaleString('ar-EG')}
-    function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-    function monthTx(){const now=new Date();return state.transactions.filter(t=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()})}
-    function totals(){const m=monthTx();return{spent:m.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0),income:m.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0),saved:state.goal.saved||0,byCat:Object.fromEntries(categories.map(c=>[c.id,m.filter(t=>t.category===c.id&&t.type==='expense').reduce((a,t)=>a+t.amount,0)]))}}
-    function daysLeft(){const d=new Date();return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()-d.getDate()+1}
-    function showPage(id){document.querySelectorAll('.page,#setup').forEach(p=>p.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.page===id));render()}
-    function isSetupComplete(){return state.salary>0 && state.goal.amount>0 && state.goal.months>0}
-    function suggestedCategory(title){for(const [re,cat] of rules){if(re.test(title||''))return cat}return 'shopping'}
-    function render(){
-      if(!isSetupComplete()){document.getElementById('setup').classList.remove('hidden');document.getElementById('dashboard').classList.add('hidden')} else if(!document.querySelector('.page:not(.hidden)')) showPage('dashboard');
-      renderCategoryOptions(); renderDashboard(); renderTransactions(); fillSettings();
-    }
-    function renderCategoryOptions(){const s=document.getElementById('txCategory');s.innerHTML=categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('')}
-    function renderDashboard(){
-      const t=totals(), salary=Number(state.salary||0), monthlyNeed=Math.ceil((state.goal.amount||0)/(state.goal.months||1)), targetAvailable=salary-monthlyNeed, forecast=salary+t.income-t.spent-monthlyNeed;
-      const pct=Math.min(100,Math.round((state.goal.saved||0)/(state.goal.amount||1)*100));
-      const pace=(state.goal.saved||0)>=monthlyNeed ? 'على المسار الصحيح' : 'بحاجة لتقليل المصروف';
-      document.getElementById('spentValue').textContent=money(t.spent);
-      document.getElementById('forecastValue').textContent=money(forecast);
-      document.getElementById('savingNeeded').textContent=money(monthlyNeed);
-      document.getElementById('budgetStatus').textContent=forecast>=0?'جيدة':'خطر';
-      document.getElementById('budgetStatus').className='value '+(forecast>=0?'good':'bad');
-      document.getElementById('goalMeta').textContent=`${pct}% من ${money(state.goal.amount)}`;
-      document.getElementById('goalBar').style.width=pct+'%';
-      document.getElementById('goalAdvice').innerHTML=`هدفك: <strong>${state.goal.name||'هدف مالي'}</strong>. تحتاج تقريباً <strong>${money(monthlyNeed)}</strong> شهرياً. الحالة الحالية: <strong>${pace}</strong>.`;
-      const daily=t.spent/Math.max(1,(new Date()).getDate()); const projected=Math.round(daily*new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate());
-      document.getElementById('mainInsight').textContent=forecast>=0?'أنت قريب من خطة صحية':'انتبه: الخطة مهددة هذا الشهر';
-      document.getElementById('mainAdvice').textContent=forecast>=0?`إذا استمريت بهذا النمط، قد تنهي الشهر ومعك ${money(forecast)} بعد الادخار.`:`إذا استمريت بهذا النمط، قد تحتاج لتقليل المصروفات بحوالي ${money(Math.abs(forecast))} هذا الشهر.`;
-      document.getElementById('budgetBreakdown').innerHTML=categories.map(c=>{const planned=Math.round(salary*c.ratio), actual=c.id==='savings'?(state.goal.saved||0):(t.byCat[c.id]||0), used=Math.min(140,Math.round(actual/(planned||1)*100));return `<div class="budgetItem"><div class="budgetTop"><span>${c.icon} ${c.name}</span><strong>${money(actual)} / ${money(planned)}</strong></div><div class="progress"><div class="bar ${used>100?'red':''}" style="width:${Math.min(100,used)}%"></div></div></div>`}).join('');
-      const latest=state.transactions.slice(-3).reverse();document.getElementById('latestTx').innerHTML=latest.length?latest.map(txRow).join(''):'<div class="empty">لا توجد حركات بعد. ابدأ بتسجيل أول مصروف.</div>';
-    }
-    function txRow(t){const c=categories.find(x=>x.id===t.category)||categories[0];const sign=t.type==='expense'?'-': '+';const cls=t.type==='expense'?'bad':'good';return `<div class="row"><div><strong>${t.title}</strong><small>${new Date(t.date).toLocaleDateString('ar-EG')} · ${c.icon} ${c.name}</small></div><div class="${cls}" style="font-weight:900">${sign}${money(t.amount)}</div></div>`}
-    function renderTransactions(){const el=document.getElementById('allTx');el.innerHTML=state.transactions.length?state.transactions.slice().reverse().map(txRow).join(''):'<div class="empty">لا توجد حركات مسجلة.</div>'}
-    function fillSettings(){['salarySettings','goalNameSettings','goalAmountSettings','goalMonthsSettings'].forEach(id=>{const el=document.getElementById(id); if(!el) return;});document.getElementById('salarySettings').value=state.salary||'';document.getElementById('goalNameSettings').value=state.goal.name||'';document.getElementById('goalAmountSettings').value=state.goal.amount||'';document.getElementById('goalMonthsSettings').value=state.goal.months||''}
-    document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
-    document.getElementById('saveSetup').onclick=()=>{state.salary=+salaryInput.value;state.goal={name:goalNameInput.value.trim(),amount:+goalAmountInput.value,months:+goalMonthsInput.value,saved:0};save();toast('تم إنشاء خطتك المالية');showPage('dashboard')};
-    document.getElementById('saveSettings').onclick=()=>{state.salary=+salarySettings.value;state.goal.name=goalNameSettings.value.trim();state.goal.amount=+goalAmountSettings.value;state.goal.months=+goalMonthsSettings.value;save();toast('تم حفظ الخطة');showPage('dashboard')};
-    document.getElementById('txTitle').addEventListener('input',e=>{txCategory.value=suggestedCategory(e.target.value)});
-    document.getElementById('addTxBtn').onclick=()=>{const amount=+txAmount.value,title=txTitle.value.trim();if(!amount||!title)return toast('أدخل الوصف والمبلغ');const type=txType.value;if(type==='saving')state.goal.saved=(state.goal.saved||0)+amount;state.transactions.push({id:Date.now(),type,title,amount,category:txCategory.value,date:new Date().toISOString()});save();txTitle.value='';txAmount.value='';toast('تمت إضافة الحركة');showPage('dashboard')};
-    document.getElementById('clearTx').onclick=()=>{if(confirm('مسح كل الحركات؟')){state.transactions=[];save();render();toast('تم مسح الحركات')}};
-    document.getElementById('exportBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='mezan-backup.json';a.click();URL.revokeObjectURL(a.href)};
-    document.getElementById('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{state=JSON.parse(r.result);save();render();toast('تم استيراد البيانات')}catch{toast('ملف غير صالح')}};r.readAsText(f)};
-    render();
-  </script>
+<script>
+const KEY='mezan_plan_v2';
+const $=id=>document.getElementById(id);
+let state=load()||{profile:null,expenses:[]};
+let wizard={step:0, salary:'', extraIncome:'', rentPaid:'no', rent:'', internet:'', electricity:'', phone:'', fuel:'', fixed:'', loans:'', saveTarget:'', goalType:'general', goalName:'', goalAmount:'', goalMonths:''};
+const fmt=n=>Number(n||0).toLocaleString('ar-QA',{maximumFractionDigits:0});
+const num=v=>Math.max(0,Number(v||0));
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function monthKey(d=new Date()){return d.toISOString().slice(0,7)}
+function thisMonthExpenses(){const m=monthKey();return state.expenses.filter(e=>(e.date||'').slice(0,7)===m)}
+function totalIncome(){const p=state.profile||{};return num(p.salary)+num(p.extraIncome)}
+function fixedCosts(){const p=state.profile||{};return num(p.rent)+num(p.internet)+num(p.electricity)+num(p.phone)+num(p.fuel)+num(p.fixed)+num(p.loans)}
+function plannedSaving(){const p=state.profile||{};return num(p.saveTarget)}
+function freeAfterPlan(){return totalIncome()-fixedCosts()-plannedSaving()}
+function variableSpent(){return thisMonthExpenses().reduce((s,e)=>s+num(e.amount),0)}
+function categoryByMerchant(txt){txt=(txt||'').toLowerCase(); if(/uber|careem|taxi|fuel|petrol|بنزين|كريم|اوبر/.test(txt))return'مواصلات'; if(/carrefour|lulu|market|grocery|مطعم|restaurant|food|coffee|كوفي|سوبر|بقال/.test(txt))return'طعام وتسوق'; if(/netflix|spotify|cinema|game|ترفيه/.test(txt))return'ترفيه'; if(/ooredoo|vodafone|kahramaa|bill|فاتورة|كهربا|انترنت/.test(txt))return'فواتير'; return'أخرى'}
+function init(){ if(state.profile){$('onboarding').classList.add('hidden');$('app').classList.remove('hidden');$('tabs').classList.remove('hidden');renderAll();} else renderWizard(); }
+function renderWizard(){
+  $('onboarding').classList.remove('hidden');$('app').classList.add('hidden');$('tabs').classList.add('hidden');
+  const steps=5; const dots='<div class="steps">'+Array.from({length:steps},(_,i)=>`<div class="step-dot ${i<=wizard.step?'active':''}"></div>`).join('')+'</div>';
+  const wrap=(title,desc,body)=>`<div class="hero card"><h2>خلينا نبني خطتك</h2><p>أجب على أسئلة بسيطة، وميزان سيحوّل راتبك إلى خطة شهرية قابلة للتنفيذ.</p></div><div class="card flat">${dots}<div class="q-title">${title}</div><div class="q-desc">${desc}</div><div class="form">${body}</div></div>`;
+  let body='';
+  if(wizard.step===0){body=wrap('الدخل الشهري','أدخل راتبك وأي دخل إضافي متكرر.',`<div class="field"><label>الراتب الشهري</label><input type="number" inputmode="decimal" id="salary" value="${wizard.salary}" placeholder="مثلاً 8000"></div><div class="field"><label>دخل إضافي شهري (اختياري)</label><input type="number" inputmode="decimal" id="extraIncome" value="${wizard.extraIncome}" placeholder="عمل إضافي، إيجار، مشروع..."></div>${navBtns(false)}`)}
+  if(wizard.step===1){body=wrap('السكن والفواتير','هذه مصاريف ثابتة يضعها التطبيق أولاً قبل حساب قدرتك على التوفير.',`<div class="field"><label>هل تدفع إيجار منزل؟</label><div class="choice"><button type="button" class="chip ${wizard.rentPaid==='yes'?'active':''}" onclick="setChoice('rentPaid','yes')">نعم</button><button type="button" class="chip ${wizard.rentPaid==='no'?'active':''}" onclick="setChoice('rentPaid','no')">لا</button></div></div><div class="field ${wizard.rentPaid==='yes'?'':'hidden'}"><label>قيمة الإيجار</label><input type="number" inputmode="decimal" id="rent" value="${wizard.rent}" placeholder="مثلاً 3500"></div><div class="split"><div class="field"><label>إنترنت</label><input type="number" inputmode="decimal" id="internet" value="${wizard.internet}" placeholder="0"></div><div class="field"><label>كهرباء / ماء</label><input type="number" inputmode="decimal" id="electricity" value="${wizard.electricity}" placeholder="0"></div></div><div class="field"><label>هاتف</label><input type="number" inputmode="decimal" id="phone" value="${wizard.phone}" placeholder="0"></div>${navBtns(true)}`)}
+  if(wizard.step===2){body=wrap('الالتزامات الشهرية','أدخل البنزين، الدفعات الثابتة، والأقساط حتى لا تختلط مع المصروفات اليومية.',`<div class="field"><label>بنزين / مواصلات ثابتة</label><input type="number" inputmode="decimal" id="fuel" value="${wizard.fuel}" placeholder="0"></div><div class="field"><label>دفعات ثابتة أخرى</label><input type="number" inputmode="decimal" id="fixed" value="${wizard.fixed}" placeholder="اشتراكات، تأمين، مدارس..."></div><div class="field"><label>أقساط / ديون</label><input type="number" inputmode="decimal" id="loans" value="${wizard.loans}" placeholder="0"></div>${navBtns(true)}`)}
+  if(wizard.step===3){body=wrap('التوفير والهدف','حدد كم تريد توفيره شهرياً، وهل هو توفير عام أم لهدف محدد.',`<div class="field"><label>كم ترغب بتوفيره شهرياً؟</label><input type="number" inputmode="decimal" id="saveTarget" value="${wizard.saveTarget}" placeholder="مثلاً 1500"></div><div class="field"><label>نوع هدف التوفير</label><div class="choice"><button type="button" class="chip ${wizard.goalType==='general'?'active':''}" onclick="setChoice('goalType','general')">توفير عام</button><button type="button" class="chip ${wizard.goalType==='specific'?'active':''}" onclick="setChoice('goalType','specific')">هدف محدد</button></div></div><div class="${wizard.goalType==='specific'?'':'hidden'}"><div class="field"><label>اسم الهدف</label><input id="goalName" value="${wizard.goalName}" placeholder="سيارة، سفر، بيت..."></div><div class="split"><div class="field"><label>مبلغ الهدف</label><input type="number" inputmode="decimal" id="goalAmount" value="${wizard.goalAmount}" placeholder="30000"></div><div class="field"><label>خلال كم شهر؟</label><input type="number" inputmode="numeric" id="goalMonths" value="${wizard.goalMonths}" placeholder="12"></div></div></div>${navBtns(true)}`)}
+  if(wizard.step===4){collect(); const income=num(wizard.salary)+num(wizard.extraIncome), fixed=num(wizard.rent)+num(wizard.internet)+num(wizard.electricity)+num(wizard.phone)+num(wizard.fuel)+num(wizard.fixed)+num(wizard.loans), saving=num(wizard.saveTarget), free=income-fixed-saving; body=wrap('مراجعة الخطة','هذه النتيجة الأولية. يمكنك تعديلها لاحقاً من الإعدادات.',`<div class="grid"><div class="metric"><div class="label">الدخل الكلي</div><div class="value good">${fmt(income)}</div></div><div class="metric"><div class="label">الالتزامات</div><div class="value yellow">${fmt(fixed)}</div></div><div class="metric"><div class="label">التوفير المخطط</div><div class="value blue">${fmt(saving)}</div></div><div class="metric"><div class="label">المتاح اليومي</div><div class="value ${free>=0?'good':'bad'}">${fmt(free/30)}</div></div></div><p class="advice">${free<0?'⚠️ الخطة حالياً أعلى من دخلك. قلل الالتزامات أو هدف التوفير.':'✅ الخطة قابلة للتنفيذ. ميزان سيقارن مصروفاتك اليومية بالمتاح بعد الالتزامات والتوفير.'}</p><div class="btns"><button class="btn secondary" onclick="prevStep()">رجوع</button><button class="btn" onclick="finishWizard()">اعتماد الخطة</button></div>`)}
+  $('onboarding').innerHTML=body;
+}
+function navBtns(back){return `<div class="btns">${back?'<button class="btn secondary" type="button" onclick="prevStep()">رجوع</button>':''}<button class="btn ${back?'':'full'}" type="button" onclick="nextStep()">التالي</button></div>`}
+function collect(){['salary','extraIncome','rent','internet','electricity','phone','fuel','fixed','loans','saveTarget','goalName','goalAmount','goalMonths'].forEach(id=>{const el=$(id); if(el) wizard[id]=el.value}); if(wizard.rentPaid==='no') wizard.rent='';}
+function setChoice(k,v){collect(); wizard[k]=v; renderWizard();}
+function nextStep(){collect(); if(wizard.step===0 && num(wizard.salary)<=0){toast('أدخل الراتب الشهري أولاً');return} if(wizard.step===3 && wizard.goalType==='specific' && !wizard.goalName){toast('اكتب اسم الهدف');return} wizard.step=Math.min(4,wizard.step+1); renderWizard();}
+function prevStep(){collect(); wizard.step=Math.max(0,wizard.step-1); renderWizard();}
+function finishWizard(){collect(); state.profile={salary:num(wizard.salary),extraIncome:num(wizard.extraIncome),rentPaid:wizard.rentPaid,rent:num(wizard.rent),internet:num(wizard.internet),electricity:num(wizard.electricity),phone:num(wizard.phone),fuel:num(wizard.fuel),fixed:num(wizard.fixed),loans:num(wizard.loans),saveTarget:num(wizard.saveTarget),goalType:wizard.goalType,goalName:wizard.goalName||'توفير عام',goalAmount:num(wizard.goalAmount),goalMonths:num(wizard.goalMonths)}; save(); init(); toast('تم إنشاء خطتك المالية');}
+function restartWizard(){const p=state.profile||{}; wizard={step:0,salary:p.salary||'',extraIncome:p.extraIncome||'',rentPaid:p.rentPaid||'no',rent:p.rent||'',internet:p.internet||'',electricity:p.electricity||'',phone:p.phone||'',fuel:p.fuel||'',fixed:p.fixed||'',loans:p.loans||'',saveTarget:p.saveTarget||'',goalType:p.goalType||'general',goalName:p.goalName||'',goalAmount:p.goalAmount||'',goalMonths:p.goalMonths||''}; state.profile=null; save(); init();}
+function renderAll(){renderDashboard();renderExpense();renderBudget();renderSettings();}
+function renderDashboard(){const income=totalIncome(), fixed=fixedCosts(), saving=plannedSaving(), spent=variableSpent(), variable=Math.max(0,income-fixed-saving), remaining=variable-spent, day=new Date().getDate(), days=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate(), forecast=remaining-((spent/day)*(days-day)); const p=state.profile; const progress=p.goalType==='specific'&&p.goalAmount?Math.min(100,(saving/(p.goalAmount))*100):Math.min(100,(saving/Math.max(1,income))*100); $('dashboard').innerHTML=`<div class="grid"><div class="metric"><div class="label">الدخل الشهري</div><div class="value good">${fmt(income)}</div></div><div class="metric"><div class="label">التزامات ثابتة</div><div class="value yellow">${fmt(fixed)}</div></div><div class="metric"><div class="label">مصروفات الشهر</div><div class="value ${spent>variable?'bad':'blue'}">${fmt(spent)}</div></div><div class="metric"><div class="label">المتبقي للإنفاق</div><div class="value ${remaining>=0?'good':'bad'}">${fmt(remaining)}</div></div></div><div class="card flat"><div class="section-title"><h3>هدف التوفير</h3><span class="hint">${p.goalName||'توفير عام'}</span></div><div class="advice">أنت تخطط لتوفير <strong>${fmt(saving)}</strong> شهرياً. ${p.goalType==='specific'&&p.goalAmount?`هدفك <strong>${fmt(p.goalAmount)}</strong>، وبالخطة الحالية تحتاج تقريباً <strong>${Math.ceil(p.goalAmount/Math.max(1,saving))}</strong> شهر.`:'هذا توفير عام لبناء أمان مالي.'}</div><div class="progress"><div class="bar" style="width:${progress}%"></div></div></div><div class="card flat"><div class="section-title"><h3>توقع نهاية الشهر</h3><span class="hint">حسب صرفك الحالي</span></div><p class="advice">${forecast>=0?`✅ إذا استمريت بنفس النمط، قد تنهي الشهر بفائض يقارب <strong>${fmt(forecast)}</strong>.`:`⚠️ إذا استمريت بنفس النمط، قد تتجاوز خطتك بحوالي <strong>${fmt(Math.abs(forecast))}</strong>.`}</p></div><div class="card flat"><div class="section-title"><h3>آخر المصاريف</h3><span class="hint">هذا الشهر</span></div>${expenseList(5)}</div>`}
+function renderExpense(){ $('expense').innerHTML=`<div class="card flat"><div class="section-title"><h3>إضافة مصروف</h3><span class="hint">التصنيف تلقائي</span></div><div class="form"><div class="field"><label>المبلغ</label><input id="exAmount" type="number" inputmode="decimal" placeholder="مثلاً 75"></div><div class="field"><label>اسم التاجر / الوصف</label><input id="exMerchant" placeholder="Carrefour, Uber, مطعم..."></div><div class="split"><div class="field"><label>التاريخ</label><input id="exDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>التصنيف</label><select id="exCategory"><option>تلقائي</option><option>طعام وتسوق</option><option>مواصلات</option><option>فواتير</option><option>ترفيه</option><option>أخرى</option></select></div></div><button class="btn" onclick="addExpense()">حفظ المصروف</button></div></div><div class="card flat"><div class="section-title"><h3>كل المصاريف</h3><span class="hint">الأحدث أولاً</span></div>${expenseList(50)}</div>`}
+function addExpense(){const amount=num($('exAmount').value), merchant=$('exMerchant').value.trim(), date=$('exDate').value, chosen=$('exCategory').value; if(!amount){toast('أدخل مبلغ المصروف');return} const cat=chosen==='تلقائي'?categoryByMerchant(merchant):chosen; state.expenses.unshift({id:Date.now(),amount,merchant:merchant||'مصروف',category:cat,date}); save(); renderAll(); toast('تم حفظ المصروف'); showTab('dashboard')}
+function expenseList(limit){const arr=thisMonthExpenses().slice(0,limit); if(!arr.length)return `<div class="empty">لا توجد مصاريف لهذا الشهر بعد.</div>`; return `<div class="list">${arr.map(e=>`<div class="row"><div><b>${e.merchant}</b><small>${e.date} • ${e.category}</small></div><div><b>${fmt(e.amount)}</b><br><button class="pill" onclick="deleteExpense(${e.id})">حذف</button></div></div>`).join('')}</div>`}
+function deleteExpense(id){state.expenses=state.expenses.filter(e=>e.id!==id);save();renderAll();toast('تم حذف المصروف')}
+function renderBudget(){const income=totalIncome(), fixed=fixedCosts(), saving=plannedSaving(), variable=Math.max(0,income-fixed-saving), spent=variableSpent(); const items=[['الإيجار',state.profile.rent],['إنترنت',state.profile.internet],['كهرباء / ماء',state.profile.electricity],['هاتف',state.profile.phone],['بنزين / مواصلات',state.profile.fuel],['دفعات ثابتة',state.profile.fixed],['أقساط',state.profile.loans],['توفير مخطط',saving],['مصروفات يومية مسموحة',variable]]; $('budget').innerHTML=`<div class="card flat"><div class="section-title"><h3>خطة الشهر</h3><span class="hint">الدخل: ${fmt(income)}</span></div>${items.filter(i=>num(i[1])>0).map(([name,val])=>{const w=Math.min(100,num(val)/Math.max(1,income)*100);return `<div class="budgetItem"><div class="budgetTop"><b>${name}</b><span>${fmt(val)}</span></div><div class="progress"><div class="bar" style="width:${w}%"></div></div></div>`}).join('')}<p class="advice">صرفت من بند المصروفات اليومية <strong>${fmt(spent)}</strong> من أصل <strong>${fmt(variable)}</strong>.</p></div>`}
+function renderSettings(){ $('settings').innerHTML=`<div class="card flat"><div class="section-title"><h3>البيانات والخصوصية</h3><span class="hint">محفوظة على جهازك</span></div><p class="advice">لا يوجد حساب أو مزامنة حالياً. كل البيانات محفوظة محلياً داخل المتصفح.</p><div class="btns"><button class="btn secondary" onclick="exportData()">تصدير</button><button class="btn secondary" onclick="document.getElementById('importFile').click()">استيراد</button><button class="btn ghost full" onclick="restartWizard()">تعديل الأسئلة والخطة</button><button class="btn danger full" onclick="resetAll()">مسح كل البيانات</button></div><input id="importFile" type="file" accept="application/json" class="hidden" onchange="importData(event)"></div>`}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='mezan-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(ev){const f=ev.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{try{state=JSON.parse(r.result);save();init();toast('تم استيراد البيانات')}catch{toast('ملف غير صالح')}}; r.readAsText(f)}
+function resetAll(){if(confirm('هل تريد مسح كل بيانات ميزان؟')){localStorage.removeItem(KEY);state={profile:null,expenses:[]};init();}}
+function showTab(id){document.querySelectorAll('.tabPanel').forEach(p=>p.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));window.scrollTo({top:0,behavior:'smooth'});}
+init();
+</script>
 </body>
 </html>
