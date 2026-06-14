@@ -39,6 +39,10 @@
     test('تعقيم HTML', () => equal(MezanUI.escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;'));
     test('تنظيف الأرقام', () => equal(MezanCalculations.number('1,250.50'), 1250.5));
     test('حساب النسبة', () => equal(MezanCalculations.percent(250, 1000), 25));
+    test('رمز العملة حسب اللغة', () => {
+      equal(MezanCurrency.symbol('QAR', 'ar'), 'ر.ق');
+      equal(MezanCurrency.symbol('QAR', 'en'), 'QAR');
+    });
     test('حساب الخطة', () => {
       const totals = MezanCalculations.wizardTotals({ salary: 10000, extraIncome: 500, rent: 3000, saveTarget: 1000 });
       equal(totals.free, 6500);
