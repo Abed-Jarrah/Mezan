@@ -1,5 +1,7 @@
 const MezanStorage = (() => {
-  const KEY = 'mezan_plan_v3';
+  const KEY = 'mezan_plan_v4';
+  const LEGACY_KEYS = ['mezan_plan_v3', 'mezan_plan_v2'];
+  const SCHEMA_VERSION = 4;
   const LANGUAGES = new Set(['ar', 'en']);
   const CURRENCIES = new Set(['QAR', 'SAR', 'AED', 'KWD', 'BHD', 'OMR', 'JOD', 'USD', 'EUR', 'TRY']);
   const EXPENSE_KINDS = new Set(['regular', 'recurring', 'exceptional', 'giving']);
@@ -43,17 +45,29 @@ const MezanStorage = (() => {
 
   function defaults(settings = {}) {
     return {
+      schemaVersion: SCHEMA_VERSION,
       profile: null,
       expenses: [],
       categoryBudgets: categoryBudgets(),
       recurringPayments: [],
       salaryReceipts: [],
       cycleReports: [],
+      merchantCategories: {},
       settings: {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
-        currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR'
+        currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR',
+        lastBackupAt: date(settings.lastBackupAt)
       }
     };
+  }
+
+  function merchantCategories(source) {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return {};
+    return Object.entries(source).slice(0, 500).reduce((result, [merchant, category]) => {
+      const key = text(merchant.toLowerCase(), 100);
+      if (key && CATEGORY_ALIASES[category]) result[key] = CATEGORY_ALIASES[category];
+      return result;
+    }, {});
   }
 
   function normalizeProfile(profile) {
@@ -156,6 +170,7 @@ const MezanStorage = (() => {
       throw new Error('Invalid Mezan backup');
     }
     const base = defaults(raw.settings || {});
+    base.schemaVersion = SCHEMA_VERSION;
     base.profile = normalizeProfile(raw.profile);
     base.expenses = Array.isArray(raw.expenses)
       ? raw.expenses.map(normalizeExpense).filter(Boolean).slice(0, 5000)
@@ -164,6 +179,7 @@ const MezanStorage = (() => {
     base.recurringPayments = Array.isArray(raw.recurringPayments)
       ? raw.recurringPayments.map(normalizeRecurring).filter(Boolean).slice(0, 200)
       : [];
+    base.merchantCategories = merchantCategories(raw.merchantCategories);
     base.salaryReceipts = Array.isArray(raw.salaryReceipts)
       ? raw.salaryReceipts.map(normalizeReceipt).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date)).slice(-200)
       : [];
@@ -182,8 +198,16 @@ const MezanStorage = (() => {
 
   function load() {
     try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? normalize(JSON.parse(raw)) : defaults();
+      const current = localStorage.getItem(KEY);
+      if (current) return normalize(JSON.parse(current));
+      for (const legacyKey of LEGACY_KEYS) {
+        const legacy = localStorage.getItem(legacyKey);
+        if (!legacy) continue;
+        const migrated = normalize(JSON.parse(legacy));
+        localStorage.setItem(KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+      return defaults();
     } catch {
       return defaults();
     }
@@ -201,7 +225,8 @@ const MezanStorage = (() => {
 
   function clear() {
     localStorage.removeItem(KEY);
+    LEGACY_KEYS.forEach(key => localStorage.removeItem(key));
   }
 
-  return { KEY, defaults, load, save, parseBackup, clear, normalize };
+  return { KEY, SCHEMA_VERSION, defaults, load, save, parseBackup, clear, normalize };
 })();

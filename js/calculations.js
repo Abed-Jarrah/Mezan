@@ -124,12 +124,36 @@ const MezanCalculations = (() => {
     };
   }
 
+  function savingsProgress(goalAmount, reports = []) {
+    const goal = number(goalAmount);
+    const saved = reports.reduce((sum, report) => sum + number(report?.saved), 0);
+    return {
+      goal,
+      saved,
+      remaining: Math.max(0, goal - saved),
+      progress: goal > 0 ? Math.min(100, percent(saved, goal)) : 0
+    };
+  }
+
+  function classifyMerchant(merchant, learned = {}) {
+    const value = String(merchant || '').trim().toLowerCase();
+    if (!value) return 'other';
+    if (learned[value]) return learned[value];
+    if (/uber|taxi|careem|كريم|أوبر|اوبر|تكسي|تاكسي|بنزين|وقود|بترول|محطة|مواصلات/.test(value)) return 'transport';
+    if (/carrefour|lulu|grocery|market|restaurant|food|cafe|coffee|مطعم|مقهى|قهوة|سوبر|ماركت|تموينات|بقالة|خضار|مخبز|كارفور|لولو/.test(value)) return 'food';
+    if (/ooredoo|vodafone|kahramaa|internet|phone|electric|water|فاتورة|كهرباء|ماء|هاتف|انترنت|إنترنت|أوريدو|فودافون/.test(value)) return 'bills';
+    if (/cinema|netflix|game|playstation|سينما|نتفلكس|ترفيه|ألعاب|العاب/.test(value)) return 'fun';
+    return 'other';
+  }
+
   return {
     clean,
     number,
     percent,
     wizardTotals,
     cycleBalance,
+    savingsProgress,
+    classifyMerchant,
     dateKey,
     parseDate,
     salaryCycle,

@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js"></script>
-  <script src="js/calculations.js"></script>
-  <script src="js/translations.js"></script>
-  <script src="js/currency.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/storage.js?v=20260615-4"></script>
+  <script src="js/calculations.js?v=20260615-4"></script>
+  <script src="js/translations.js?v=20260615-4"></script>
+  <script src="js/currency.js?v=20260615-4"></script>
+  <script src="js/ui.js?v=20260615-4"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -63,6 +63,24 @@
       equal(balance.spent, 700);
       equal(balance.remaining, 5800);
     });
+    test('تراكم التوفير عبر الدورات', () => {
+      const progress = MezanCalculations.savingsProgress(10000, [
+        { saved: 1500 },
+        { saved: 2200 },
+        { saved: 800 }
+      ]);
+      equal(progress.saved, 4500);
+      equal(progress.remaining, 5500);
+      equal(progress.progress, 45);
+    });
+    test('التصنيف التلقائي يدعم التجار العرب', () => {
+      equal(MezanCalculations.classifyMerchant('مطعم الشام'), 'food');
+      equal(MezanCalculations.classifyMerchant('محطة وقود'), 'transport');
+      equal(MezanCalculations.classifyMerchant('فاتورة كهرباء'), 'bills');
+    });
+    test('التصنيف يتعلم اختيار المستخدم', () => {
+      equal(MezanCalculations.classifyMerchant('متجر خاص', { 'متجر خاص': 'fun' }), 'fun');
+    });
     test('ترحيل التصنيف القديم', () => {
       const state = MezanStorage.normalize({
         settings: { lang: 'ar', currency: 'QAR' },
@@ -91,6 +109,45 @@
       });
       equal(state.salaryReceipts[0].date, '2026-05-11');
       equal(state.salaryReceipts[0].amount, 9000);
+    });
+    test('ترقية البيانات إلى schema v4', () => {
+      const state = MezanStorage.normalize({
+        settings: { lang: 'ar', currency: 'QAR', lastBackupAt: '2026-06-01' },
+        profile: { salary: 9000, salaryDate: '2026-05-11' },
+        merchantCategories: { 'متجر خاص': 'ترفيه' }
+      });
+      equal(state.schemaVersion, 4);
+      equal(state.settings.lastBackupAt, '2026-06-01');
+      equal(state.merchantCategories['متجر خاص'], 'fun');
+    });
+    test('قراءة مفتاح v3 وترحيله دون فقدان البيانات', () => {
+      const current = localStorage.getItem('mezan_plan_v4');
+      const legacy = localStorage.getItem('mezan_plan_v3');
+      try {
+        localStorage.removeItem('mezan_plan_v4');
+        localStorage.setItem('mezan_plan_v3', JSON.stringify({
+          settings: { lang: 'ar', currency: 'QAR' },
+          profile: { salary: 7000, salaryDate: '2026-05-01' },
+          expenses: [{ amount: 50, merchant: 'متجر', category: 'أخرى', date: '2026-05-02' }]
+        }));
+        const migrated = MezanStorage.load();
+        equal(migrated.schemaVersion, 4);
+        equal(migrated.profile.salary, 7000);
+        equal(migrated.expenses[0].amount, 50);
+        equal(JSON.parse(localStorage.getItem('mezan_plan_v4')).schemaVersion, 4);
+      } finally {
+        if (current === null) localStorage.removeItem('mezan_plan_v4');
+        else localStorage.setItem('mezan_plan_v4', current);
+        if (legacy === null) localStorage.removeItem('mezan_plan_v3');
+        else localStorage.setItem('mezan_plan_v3', legacy);
+      }
+    });
+    test('استيراد بيانات جزئية يحافظ على القيم الافتراضية', () => {
+      const state = MezanStorage.parseBackup('{"settings":{"currency":"USD"},"expenses":"invalid"}');
+      equal(state.settings.currency, 'USD');
+      equal(state.settings.lang, 'ar');
+      equal(state.expenses.length, 0);
+      equal(state.schemaVersion, 4);
     });
     test('الدورة تبقى مفتوحة حتى الراتب التالي', () => {
       const cycle = MezanCalculations.receiptCycle([

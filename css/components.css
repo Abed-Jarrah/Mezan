@@ -328,3 +328,5 @@ input:focus,select:focus{
   .report-grid{grid-template-columns:1fr 1fr}
   .report-message{font-size:13px}
 }
+.expense-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
+.backup-card{border-color:rgba(240,177,66,.38);background:linear-gradient(145deg,rgba(240,177,66,.12),rgba(19,53,46,.72))}
