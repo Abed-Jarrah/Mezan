@@ -40,9 +40,10 @@ const MezanCalculations = (() => {
     };
   }
 
-  function inCycle(value, cycle) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(value || '') &&
-      value >= cycle.start && (!cycle.endExclusive || value < cycle.endExclusive);
+  function inCycle(value, cycle, today = new Date()) {
+    if (!parseDate(value) || value < cycle.start) return false;
+    if (cycle.endExclusive) return value < cycle.endExclusive;
+    return value <= dateKey(today);
   }
 
   function cycleProgress(cycle, today = new Date()) {
@@ -135,6 +136,21 @@ const MezanCalculations = (() => {
     };
   }
 
+  function completedCycleReport({ salary, plan = {}, expenses = [] }) {
+    const income = number(salary) + number(plan.extraIncome);
+    const fixed = ['rent', 'internet', 'electricity', 'phone', 'fuel', 'fixed', 'loans']
+      .reduce((sum, field) => sum + number(plan[field]), 0);
+    const variable = expenses.reduce((sum, expense) => sum + number(expense?.amount), 0);
+    const availableForSaving = Math.max(0, income - fixed - variable);
+    return {
+      income,
+      fixed,
+      variable,
+      spent: fixed + variable,
+      saved: Math.min(number(plan.saveTarget), availableForSaving)
+    };
+  }
+
   function classifyMerchant(merchant, learned = {}) {
     const value = String(merchant || '').trim().toLowerCase();
     if (!value) return 'other';
@@ -152,6 +168,7 @@ const MezanCalculations = (() => {
     percent,
     wizardTotals,
     cycleBalance,
+    completedCycleReport,
     savingsProgress,
     classifyMerchant,
     dateKey,

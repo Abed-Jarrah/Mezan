@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260615-4"></script>
-  <script src="js/calculations.js?v=20260615-4"></script>
-  <script src="js/translations.js?v=20260615-4"></script>
-  <script src="js/currency.js?v=20260615-4"></script>
-  <script src="js/ui.js?v=20260615-4"></script>
+  <script src="js/storage.js?v=20260615-5"></script>
+  <script src="js/calculations.js?v=20260615-5"></script>
+  <script src="js/translations.js?v=20260615-5"></script>
+  <script src="js/currency.js?v=20260615-5"></script>
+  <script src="js/ui.js?v=20260615-5"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -42,6 +42,7 @@
     test('رمز العملة حسب اللغة', () => {
       equal(MezanCurrency.symbol('QAR', 'ar'), 'ر.ق');
       equal(MezanCurrency.symbol('QAR', 'en'), 'QAR');
+      equal(MezanCurrency.format(12.5), '12.5');
     });
     test('حساب الخطة', () => {
       const totals = MezanCalculations.wizardTotals({ salary: 10000, extraIncome: 500, rent: 3000, saveTarget: 1000 });
@@ -110,36 +111,36 @@
       equal(state.salaryReceipts[0].date, '2026-05-11');
       equal(state.salaryReceipts[0].amount, 9000);
     });
-    test('ترقية البيانات إلى schema v4', () => {
+    test('ترقية البيانات إلى schema v5', () => {
       const state = MezanStorage.normalize({
         settings: { lang: 'ar', currency: 'QAR', lastBackupAt: '2026-06-01' },
         profile: { salary: 9000, salaryDate: '2026-05-11' },
         merchantCategories: { 'متجر خاص': 'ترفيه' }
       });
-      equal(state.schemaVersion, 4);
+      equal(state.schemaVersion, 5);
       equal(state.settings.lastBackupAt, '2026-06-01');
       equal(state.merchantCategories['متجر خاص'], 'fun');
     });
-    test('قراءة مفتاح v3 وترحيله دون فقدان البيانات', () => {
-      const current = localStorage.getItem('mezan_plan_v4');
-      const legacy = localStorage.getItem('mezan_plan_v3');
+    test('قراءة مفتاح v4 وترحيله دون فقدان البيانات', () => {
+      const current = localStorage.getItem('mezan_plan_v5');
+      const legacy = localStorage.getItem('mezan_plan_v4');
       try {
-        localStorage.removeItem('mezan_plan_v4');
-        localStorage.setItem('mezan_plan_v3', JSON.stringify({
+        localStorage.removeItem('mezan_plan_v5');
+        localStorage.setItem('mezan_plan_v4', JSON.stringify({
           settings: { lang: 'ar', currency: 'QAR' },
           profile: { salary: 7000, salaryDate: '2026-05-01' },
           expenses: [{ amount: 50, merchant: 'متجر', category: 'أخرى', date: '2026-05-02' }]
         }));
         const migrated = MezanStorage.load();
-        equal(migrated.schemaVersion, 4);
+        equal(migrated.schemaVersion, 5);
         equal(migrated.profile.salary, 7000);
         equal(migrated.expenses[0].amount, 50);
-        equal(JSON.parse(localStorage.getItem('mezan_plan_v4')).schemaVersion, 4);
+        equal(JSON.parse(localStorage.getItem('mezan_plan_v5')).schemaVersion, 5);
       } finally {
-        if (current === null) localStorage.removeItem('mezan_plan_v4');
-        else localStorage.setItem('mezan_plan_v4', current);
-        if (legacy === null) localStorage.removeItem('mezan_plan_v3');
-        else localStorage.setItem('mezan_plan_v3', legacy);
+        if (current === null) localStorage.removeItem('mezan_plan_v5');
+        else localStorage.setItem('mezan_plan_v5', current);
+        if (legacy === null) localStorage.removeItem('mezan_plan_v4');
+        else localStorage.setItem('mezan_plan_v4', legacy);
       }
     });
     test('استيراد بيانات جزئية يحافظ على القيم الافتراضية', () => {
@@ -147,7 +148,7 @@
       equal(state.settings.currency, 'USD');
       equal(state.settings.lang, 'ar');
       equal(state.expenses.length, 0);
-      equal(state.schemaVersion, 4);
+      equal(state.schemaVersion, 5);
     });
     test('الدورة تبقى مفتوحة حتى الراتب التالي', () => {
       const cycle = MezanCalculations.receiptCycle([
@@ -157,7 +158,8 @@
       equal(cycle.start, '2026-05-11');
       equal(cycle.end, '2026-06-30');
       equal(cycle.open, true);
-      equal(MezanCalculations.inCycle('2026-06-30', cycle), true);
+      equal(MezanCalculations.inCycle('2026-06-30', cycle, new Date(2026, 5, 30)), true);
+      equal(MezanCalculations.inCycle('2026-07-01', cycle, new Date(2026, 5, 30)), false);
     });
     test('الراتب التالي يغلق الدورة السابقة', () => {
       const cycle = MezanCalculations.closedReceiptCycle('2026-04-01', '2026-05-11');
@@ -183,6 +185,62 @@
       let rejected = false;
       try { MezanStorage.parseBackup('[]'); } catch { rejected = true; }
       equal(rejected, true);
+    });
+    test('رفض التواريخ المستحيلة من التخزين', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        expenses: [{ amount: 20, date: '2026-02-30', category: 'food' }]
+      });
+      equal(state.expenses.length, 0);
+    });
+    test('التصنيفات الإنجليزية غير حساسة لحالة الأحرف', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        expenses: [{ amount: 20, date: '2026-06-10', category: 'FOOD' }]
+      });
+      equal(state.expenses[0].category, 'food');
+    });
+    test('تعقيم مفاتيح التقارير والأنواع المستوردة', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        cycleReports: [{
+          start: '2026-05-01', end: '2026-05-30', topKey: '<img>',
+          breakdown: [{ key: '<script>', amount: 10 }],
+          expenses: [{ amount: 10, date: '2026-05-02', subtype: '<img>' }]
+        }]
+      });
+      equal(state.cycleReports[0].topKey, 'other');
+      equal(state.cycleReports[0].breakdown[0].key, 'other');
+      equal(state.cycleReports[0].expenses[0].subtype, '');
+    });
+    test('لقطة الخطة تحفظ دخل الدورة والتزاماتها', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        profile: { salary: 9000, salaryDate: '2026-05-01' },
+        salaryReceipts: [{
+          date: '2026-05-01', amount: 9100,
+          planSnapshot: { extraIncome: 300, rent: 2500, saveTarget: 1000 }
+        }]
+      });
+      equal(state.salaryReceipts[0].planSnapshot.rent, 2500);
+      equal(state.salaryReceipts[0].planSnapshot.extraIncome, 300);
+    });
+    test('التوفير المحقق لا يتجاوز الهدف المخطط', () => {
+      const report = MezanCalculations.completedCycleReport({
+        salary: 10000,
+        plan: { extraIncome: 500, rent: 3000, saveTarget: 1500 },
+        expenses: [{ amount: 1000 }, { amount: 500 }]
+      });
+      equal(report.spent, 4500);
+      equal(report.saved, 1500);
+    });
+    test('العجز يمنع احتساب توفير محقق', () => {
+      const report = MezanCalculations.completedCycleReport({
+        salary: 5000,
+        plan: { rent: 4000, saveTarget: 1000 },
+        expenses: [{ amount: 1500 }]
+      });
+      equal(report.saved, 0);
     });
     test('التاريخ المحلي', () => equal(MezanUI.localDate(new Date(2026, 5, 4)), '2026-06-04'));
   </script>

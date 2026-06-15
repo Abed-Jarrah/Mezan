@@ -1,10 +1,16 @@
 const MezanStorage = (() => {
-  const KEY = 'mezan_plan_v4';
-  const LEGACY_KEYS = ['mezan_plan_v3', 'mezan_plan_v2'];
-  const SCHEMA_VERSION = 4;
+  const KEY = 'mezan_plan_v5';
+  const LEGACY_KEYS = ['mezan_plan_v4', 'mezan_plan_v3', 'mezan_plan_v2'];
+  const SCHEMA_VERSION = 5;
   const LANGUAGES = new Set(['ar', 'en']);
   const CURRENCIES = new Set(['QAR', 'SAR', 'AED', 'KWD', 'BHD', 'OMR', 'JOD', 'USD', 'EUR', 'TRY']);
   const EXPENSE_KINDS = new Set(['regular', 'recurring', 'exceptional', 'giving']);
+  const EXPENSE_SUBTYPES = new Set(['parents', 'family', 'charity', 'gift', 'emergency', 'exceptional']);
+  const REPORT_KEYS = new Set([
+    'rent', 'internet', 'electricity', 'phone', 'fuel', 'fixed', 'loans',
+    'food', 'transport', 'bills', 'fun', 'other', 'exceptional', 'giving'
+  ]);
+  const REPORT_KEY_ALIASES = { billsCat: 'bills', commitments: 'fixed', exceptionalTotal: 'exceptional' };
   const CATEGORY_ALIASES = {
     auto: 'auto',
     'تلقائي': 'auto',
@@ -33,7 +39,22 @@ const MezanStorage = (() => {
   const text = (value, maxLength = 120) =>
     typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 
-  const date = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : '';
+  const date = value => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+    if (!match) return '';
+    const parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    return parsed.getFullYear() === Number(match[1]) &&
+      parsed.getMonth() === Number(match[2]) - 1 &&
+      parsed.getDate() === Number(match[3]) ? value : '';
+  };
+
+  const category = value => {
+    const key = text(value, 40);
+    return CATEGORY_ALIASES[key] || CATEGORY_ALIASES[key.toLowerCase()] || 'other';
+  };
+
+  let fallbackIdCounter = 0;
+  const fallbackId = index => Date.now() * 1000 + (++fallbackIdCounter * 10) + (index % 10);
 
   const categoryBudgets = source => ({
     food: number(source?.food),
@@ -53,6 +74,7 @@ const MezanStorage = (() => {
       salaryReceipts: [],
       cycleReports: [],
       merchantCategories: {},
+      budgetAlerts: {},
       settings: {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR',
@@ -65,7 +87,8 @@ const MezanStorage = (() => {
     if (!source || typeof source !== 'object' || Array.isArray(source)) return {};
     return Object.entries(source).slice(0, 500).reduce((result, [merchant, category]) => {
       const key = text(merchant.toLowerCase(), 100);
-      if (key && CATEGORY_ALIASES[category]) result[key] = CATEGORY_ALIASES[category];
+      if (key) result[key] = category === 'auto' ? 'other' : CATEGORY_ALIASES[category] ||
+        CATEGORY_ALIASES[String(category || '').toLowerCase()] || 'other';
       return result;
     }, {});
   }
@@ -83,8 +106,25 @@ const MezanStorage = (() => {
     normalized.rentPaid = profile.rentPaid === 'yes' ? 'yes' : 'no';
     normalized.goalType = profile.goalType === 'specific' ? 'specific' : 'general';
     normalized.goalName = text(profile.goalName, 80);
-    normalized.salaryDate = date(profile.salaryDate) || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`;
+    const today = new Date();
+    normalized.salaryDate = date(profile.salaryDate) ||
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     return normalized;
+  }
+
+  function normalizePlanSnapshot(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return null;
+    return {
+      extraIncome: number(snapshot.extraIncome),
+      rent: number(snapshot.rent),
+      internet: number(snapshot.internet),
+      electricity: number(snapshot.electricity),
+      phone: number(snapshot.phone),
+      fuel: number(snapshot.fuel),
+      fixed: number(snapshot.fixed),
+      loans: number(snapshot.loans),
+      saveTarget: number(snapshot.saveTarget)
+    };
   }
 
   function normalizeExpense(expense, index) {
@@ -94,15 +134,15 @@ const MezanStorage = (() => {
     const expenseDate = date(expense.date);
     if (!expenseDate) return null;
     return {
-      id: Number.isSafeInteger(expense.id) ? expense.id : Date.now() + index,
+      id: Number.isSafeInteger(expense.id) ? expense.id : fallbackId(index),
       amount,
-      merchant: text(expense.merchant, 100) || 'Expense',
-      category: CATEGORY_ALIASES[expense.category] || 'other',
+      merchant: text(expense.merchant, 100),
+      category: category(expense.category),
       date: expenseDate,
       kind: EXPENSE_KINDS.has(expense.kind) ? expense.kind : 'regular',
-      subtype: text(expense.subtype, 40),
+      subtype: EXPENSE_SUBTYPES.has(expense.subtype) ? expense.subtype : '',
       recurringId: Number.isSafeInteger(expense.recurringId) ? expense.recurringId : null,
-      cycleKey: date(expense.cycleKey)
+      cycleKey: /^\d{4}-\d{2}$/.test(expense.cycleKey || '') ? expense.cycleKey : ''
     };
   }
 
@@ -112,10 +152,10 @@ const MezanStorage = (() => {
     const name = text(payment.name, 80);
     if (!amount || !name) return null;
     return {
-      id: Number.isSafeInteger(payment.id) ? payment.id : Date.now() + index,
+      id: Number.isSafeInteger(payment.id) ? payment.id : fallbackId(index),
       name,
       amount,
-      category: CATEGORY_ALIASES[payment.category] || 'other',
+      category: category(payment.category),
       day: Math.min(31, Math.max(1, Math.round(number(payment.day) || 1))),
       active: payment.active !== false
     };
@@ -127,15 +167,17 @@ const MezanStorage = (() => {
     const amount = number(receipt.amount);
     if (!receiptDate || !amount) return null;
     return {
-      id: Number.isSafeInteger(receipt.id) ? receipt.id : Date.now() + index,
+      id: Number.isSafeInteger(receipt.id) ? receipt.id : fallbackId(index),
       date: receiptDate,
-      amount
+      amount,
+      planSnapshot: normalizePlanSnapshot(receipt.planSnapshot)
     };
   }
 
   function normalizeBreakdown(item) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
-    const key = text(item.key, 40);
+    const normalizedKey = REPORT_KEY_ALIASES[item.key] || item.key;
+    const key = REPORT_KEYS.has(normalizedKey) ? normalizedKey : 'other';
     const amount = number(item.amount);
     return key && amount ? { key, amount } : null;
   }
@@ -146,7 +188,7 @@ const MezanStorage = (() => {
     const end = date(report.end);
     if (!start || !end) return null;
     return {
-      id: Number.isSafeInteger(report.id) ? report.id : Date.now() + index,
+      id: Number.isSafeInteger(report.id) ? report.id : fallbackId(index),
       start,
       end,
       days: Math.max(1, Math.round(number(report.days) || 1)),
@@ -154,7 +196,9 @@ const MezanStorage = (() => {
       spent: number(report.spent),
       saved: number(report.saved),
       savedPct: Math.min(100, number(report.savedPct)),
-      topKey: text(report.topKey, 40) || 'other',
+      topKey: REPORT_KEYS.has(REPORT_KEY_ALIASES[report.topKey] || report.topKey)
+        ? REPORT_KEY_ALIASES[report.topKey] || report.topKey
+        : 'other',
       topAmount: number(report.topAmount),
       breakdown: Array.isArray(report.breakdown)
         ? report.breakdown.map(normalizeBreakdown).filter(Boolean).slice(0, 30)
@@ -180,14 +224,20 @@ const MezanStorage = (() => {
       ? raw.recurringPayments.map(normalizeRecurring).filter(Boolean).slice(0, 200)
       : [];
     base.merchantCategories = merchantCategories(raw.merchantCategories);
+    base.budgetAlerts = raw.budgetAlerts && typeof raw.budgetAlerts === 'object' && !Array.isArray(raw.budgetAlerts)
+      ? Object.fromEntries(Object.entries(raw.budgetAlerts).filter(([key, value]) =>
+        /^[0-9]{4}-[0-9]{2}-[0-9]{2}:(food|transport|bills|fun|other):(80|100)$/.test(key) && value === true
+      ).slice(-100))
+      : {};
     base.salaryReceipts = Array.isArray(raw.salaryReceipts)
       ? raw.salaryReceipts.map(normalizeReceipt).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date)).slice(-200)
       : [];
     if (!base.salaryReceipts.length && base.profile) {
       base.salaryReceipts.push({
-        id: Date.now(),
+        id: fallbackId(0),
         date: base.profile.salaryDate,
-        amount: base.profile.salary
+        amount: base.profile.salary,
+        planSnapshot: normalizePlanSnapshot(base.profile)
       });
     }
     base.cycleReports = Array.isArray(raw.cycleReports)
