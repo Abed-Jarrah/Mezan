@@ -1,1 +1,6 @@
+@font-face{font-family:Cairo;font-style:normal;font-weight:400;font-display:swap;src:url("../assets/fonts/cairo-400.ttf") format("truetype")}
+@font-face{font-family:Cairo;font-style:normal;font-weight:500;font-display:swap;src:url("../assets/fonts/cairo-500.ttf") format("truetype")}
+@font-face{font-family:Cairo;font-style:normal;font-weight:600;font-display:swap;src:url("../assets/fonts/cairo-600.ttf") format("truetype")}
+@font-face{font-family:Cairo;font-style:normal;font-weight:700;font-display:swap;src:url("../assets/fonts/cairo-700.ttf") format("truetype")}
+@font-face{font-family:Cairo;font-style:normal;font-weight:800;font-display:swap;src:url("../assets/fonts/cairo-800.ttf") format("truetype")}
 :root{--bg:#061512;--panel:#0b211d;--panel2:#102a25;--card:#123129;--soft:#193d34;--line:rgba(214,255,235,.10);--line2:rgba(214,255,235,.18);--txt:#f5fff9;--muted:#a6c5b7;--muted2:#789b8c;--accent:#70e1ad;--accent2:#f2c96d;--accent3:#8fd8cf;--warn:#f2b65f;--bad:#ff7d86;--r:24px;--safe-top:env(safe-area-inset-top,0px);--safe-right:env(safe-area-inset-right,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--space:clamp(10px,2.4vw,18px)}

@@ -47,6 +47,22 @@
       const totals = MezanCalculations.wizardTotals({ salary: 10000, extraIncome: 500, rent: 3000, saveTarget: 1000 });
       equal(totals.free, 6500);
     });
+    test('الخطة المستحيلة تنتج عجزاً', () => {
+      const totals = MezanCalculations.wizardTotals({ salary: 5000, rent: 4500, saveTarget: 1000 });
+      equal(totals.free, -500);
+    });
+    test('المتبقي من الراتب يخصم جميع مصاريف الدورة', () => {
+      const balance = MezanCalculations.cycleBalance({
+        salary: 10000,
+        extraIncome: 500,
+        fixed: 3000,
+        saving: 1000,
+        expenses: [{ amount: 400 }, { amount: 200 }, { amount: 100 }]
+      });
+      equal(balance.startAvailable, 6500);
+      equal(balance.spent, 700);
+      equal(balance.remaining, 5800);
+    });
     test('ترحيل التصنيف القديم', () => {
       const state = MezanStorage.normalize({
         settings: { lang: 'ar', currency: 'QAR' },

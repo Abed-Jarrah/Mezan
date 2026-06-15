@@ -112,11 +112,24 @@ const MezanCalculations = (() => {
     };
   }
 
+  function cycleBalance({ salary, extraIncome, fixed, saving, expenses = [] }) {
+    const income = number(salary) + number(extraIncome);
+    const startAvailable = Math.max(0, income - number(fixed) - number(saving));
+    const spent = expenses.reduce((sum, expense) => sum + number(expense?.amount), 0);
+    return {
+      income,
+      startAvailable,
+      spent,
+      remaining: startAvailable - spent
+    };
+  }
+
   return {
     clean,
     number,
     percent,
     wizardTotals,
+    cycleBalance,
     dateKey,
     parseDate,
     salaryCycle,
