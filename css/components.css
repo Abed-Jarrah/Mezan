@@ -331,3 +331,58 @@ input:focus,select:focus{
 .expense-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
 .amount-actions{text-align:end}
 .backup-card{border-color:rgba(240,177,66,.38);background:linear-gradient(145deg,rgba(240,177,66,.12),rgba(19,53,46,.72))}
+
+.balance-orb-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(190px,260px) 1fr;
+  gap:clamp(18px,4vw,34px);
+  align-items:center;
+  padding:clamp(20px,4vw,32px);
+  border:1px solid rgba(112,225,173,.22);
+  border-radius:30px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(112,225,173,.14),transparent 36%),
+    linear-gradient(145deg,rgba(17,58,47,.98),rgba(7,31,26,.96));
+  box-shadow:0 24px 60px rgba(0,12,9,.28);
+}
+.balance-orb-card::after{content:"";position:absolute;width:170px;height:170px;border:1px dashed rgba(242,201,109,.12);border-radius:50%;inset:-80px -60px auto auto;pointer-events:none}
+.balance-orb{position:relative;width:min(100%,250px);aspect-ratio:1;margin:auto;display:grid;place-items:center}
+.balance-orb svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 9px 20px rgba(112,225,173,.15))}
+.balance-orb circle{fill:none;stroke-width:8}
+.orb-track{stroke:rgba(214,255,235,.08)}
+.orb-progress{stroke:var(--accent);stroke-linecap:round;stroke-dasharray:289.03;transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1),stroke .3s}
+.balance-orb-card.warning .orb-progress{stroke:var(--accent2)}
+.balance-orb-card.danger .orb-progress{stroke:var(--bad)}
+.orb-center{position:relative;z-index:1;width:72%;text-align:center}
+.orb-center span,.orb-center small{display:block;color:var(--muted);font-size:11px}
+.orb-center strong{display:block;margin:8px 0 4px;color:var(--txt);font-size:clamp(20px,4vw,32px);line-height:1.25;overflow-wrap:anywhere}
+.orb-story{display:grid;gap:14px;align-content:center}
+.orb-story p{color:var(--muted);font-size:14px}
+.status-tag{width:max-content;max-width:100%;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid rgba(112,225,173,.28);background:rgba(112,225,173,.1);color:var(--accent)}
+.status-tag i{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:currentColor;color:#08241c;font-style:normal;font-weight:900}
+.status-tag.warning{color:var(--accent2);border-style:dashed;border-color:rgba(242,201,109,.4);background:repeating-linear-gradient(135deg,rgba(242,201,109,.11) 0 6px,rgba(242,201,109,.04) 6px 12px)}
+.status-tag.danger{color:#ff9aa1;border-color:rgba(255,125,134,.45);background:repeating-linear-gradient(135deg,rgba(255,125,134,.13) 0 5px,rgba(255,125,134,.04) 5px 10px)}
+.status-tag.mini{margin-top:9px;padding:5px 9px;font-size:10px}
+.status-tag.mini i{width:16px;height:16px}
+.bar.warn{background:repeating-linear-gradient(135deg,var(--accent2) 0 8px,#d39d3f 8px 16px)}
+.bar.danger-bar{background:repeating-linear-gradient(135deg,#ff9c66 0 8px,#ff5f70 8px 16px)}
+
+.dialog-overlay{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;padding:20px;background:rgba(0,10,8,.78);backdrop-filter:blur(12px)}
+.confirm-dialog{width:min(100%,440px);padding:26px;border:1px solid rgba(255,125,134,.3);border-radius:28px;background:linear-gradient(145deg,#173a31,#091f1a);box-shadow:0 30px 90px rgba(0,0,0,.5)}
+.confirm-dialog h2{margin:10px 0 8px}
+.confirm-dialog p{margin-bottom:18px;color:var(--muted);line-height:1.8}
+.confirm-dialog label{display:block;margin-bottom:7px}
+.confirm-dialog .btns{margin-top:16px}
+.dialog-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:16px;background:rgba(255,125,134,.14);color:var(--bad);font-size:24px;font-weight:900}
+.connection-banner{position:sticky;z-index:50;top:0;padding:9px 16px;background:#553c0b;color:#fff2c9;text-align:center;font-size:12px;font-weight:800;border-bottom:1px dashed #f2c96d}
+
+@media(max-width:600px){
+  .balance-orb-card{grid-template-columns:1fr;text-align:center}
+  .orb-story{justify-items:center}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+}

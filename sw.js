@@ -1,7 +1,8 @@
-const CACHE = 'mezan-v5-20260615';
+const CACHE = 'mezan-v6-20260615';
 const ASSETS = [
   './',
   './index.html',
+  './offline.html',
   './manifest.webmanifest',
   './assets/icon.svg',
   './css/variables.css',
@@ -36,11 +37,23 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+          return response;
+        })
+        .catch(async () => (await caches.match('./index.html')) || caches.match('./offline.html'))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
       const copy = response.clone();
       caches.open(CACHE).then(cache => cache.put(event.request, copy));
       return response;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => caches.match(event.request)))
   );
 });

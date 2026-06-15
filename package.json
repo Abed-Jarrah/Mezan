@@ -1,0 +1,13 @@
+{
+  "name": "mezan",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.60.0"
+  }
+}

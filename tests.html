@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260615-5"></script>
-  <script src="js/calculations.js?v=20260615-5"></script>
-  <script src="js/translations.js?v=20260615-5"></script>
-  <script src="js/currency.js?v=20260615-5"></script>
-  <script src="js/ui.js?v=20260615-5"></script>
+  <script src="js/storage.js?v=20260615-6"></script>
+  <script src="js/calculations.js?v=20260615-6"></script>
+  <script src="js/translations.js?v=20260615-6"></script>
+  <script src="js/currency.js?v=20260615-6"></script>
+  <script src="js/ui.js?v=20260615-6"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -180,6 +180,34 @@
       equal(cycle.start, '2026-02-28');
       equal(cycle.end, '2026-03-30');
       equal(MezanCalculations.recurringDate(31, cycle), '2026-02-28');
+    });
+    test('راتب يوم 31 يتوافق مع فبراير في سنة كبيسة', () => {
+      const cycle = MezanCalculations.salaryCycle('2024-01-31', new Date(2024, 2, 15));
+      equal(cycle.start, '2024-02-29');
+      equal(cycle.end, '2024-03-30');
+    });
+    test('راتب يوم 31 يتوافق مع فبراير في سنة غير كبيسة', () => {
+      const cycle = MezanCalculations.salaryCycle('2025-01-31', new Date(2025, 2, 15));
+      equal(cycle.start, '2025-02-28');
+      equal(cycle.end, '2025-03-30');
+    });
+    test('راتب يوم 31 يتوافق مع يونيو ذي الثلاثين يوماً', () => {
+      const cycle = MezanCalculations.salaryCycle('2026-01-31', new Date(2026, 6, 15));
+      equal(cycle.start, '2026-06-30');
+      equal(cycle.end, '2026-07-30');
+    });
+    test('فشل امتلاء التخزين ينتقل للمستدعي دون تلف صامت', () => {
+      const original = Storage.prototype.setItem;
+      let quotaRaised = false;
+      try {
+        Storage.prototype.setItem = () => { throw new DOMException('Quota exceeded', 'QuotaExceededError'); };
+        try { MezanStorage.save(MezanStorage.defaults()); } catch (error) {
+          quotaRaised = error.name === 'QuotaExceededError';
+        }
+      } finally {
+        Storage.prototype.setItem = original;
+      }
+      equal(quotaRaised, true);
     });
     test('رفض نسخة احتياطية غير صالحة', () => {
       let rejected = false;
