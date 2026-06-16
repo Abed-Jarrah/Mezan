@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260615-6"></script>
-  <script src="js/calculations.js?v=20260615-6"></script>
-  <script src="js/translations.js?v=20260615-6"></script>
-  <script src="js/currency.js?v=20260615-6"></script>
-  <script src="js/ui.js?v=20260615-6"></script>
+  <script src="js/storage.js?v=20260616-1"></script>
+  <script src="js/calculations.js?v=20260616-1"></script>
+  <script src="js/translations.js?v=20260616-1"></script>
+  <script src="js/currency.js?v=20260616-1"></script>
+  <script src="js/ui.js?v=20260616-1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -149,6 +149,39 @@
       equal(state.settings.lang, 'ar');
       equal(state.expenses.length, 0);
       equal(state.schemaVersion, 5);
+    });
+    test('تاريخ راتب مستقبلي في الملف المستورد لا يصبح دورة حالية', () => {
+      const today = MezanUI.localDate();
+      const state = MezanStorage.normalize({
+        settings: {},
+        profile: { salary: 9000, salaryDate: '2999-01-01' },
+        expenses: []
+      });
+      equal(state.profile.salaryDate, today);
+      equal(state.salaryReceipts[0].date, today);
+    });
+    test('سجلات الرواتب المستقبلية تُرفض عند الاستيراد', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        salaryReceipts: [
+          { amount: 9000, date: '2026-05-01' },
+          { amount: 9000, date: '2999-01-01' }
+        ]
+      });
+      equal(state.salaryReceipts.length, 1);
+      equal(state.salaryReceipts[0].date, '2026-05-01');
+    });
+    test('حد المصاريف المستوردة لا يتجاوز 5000 سجل', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        expenses: Array.from({ length: 5002 }, (_, index) => ({
+          id: `expense-${index}`,
+          amount: 1,
+          date: '2026-06-10',
+          category: 'food'
+        }))
+      });
+      equal(state.expenses.length, 5000);
     });
     test('الدورة تبقى مفتوحة حتى الراتب التالي', () => {
       const cycle = MezanCalculations.receiptCycle([

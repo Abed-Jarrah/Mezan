@@ -6,6 +6,16 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
+test('browser unit suite passes', async ({ page }) => {
+  await page.goto('/tests.html');
+  const summary = await page.evaluate(() => ({
+    pass: document.querySelectorAll('.pass').length,
+    fail: document.querySelectorAll('.fail').length
+  }));
+  expect(summary.fail).toBe(0);
+  expect(summary.pass).toBeGreaterThanOrEqual(35);
+});
+
 test('wizard creates a valid plan using keyboard navigation', async ({ page }) => {
   await page.locator('#salary').fill('8000');
   await page.locator('#salary').press('Enter');

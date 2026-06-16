@@ -48,6 +48,16 @@ const MezanStorage = (() => {
       parsed.getDate() === Number(match[3]) ? value : '';
   };
 
+  const todayKey = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  };
+
+  const pastOrTodayDate = value => {
+    const normalized = date(value);
+    return normalized && normalized <= todayKey() ? normalized : '';
+  };
+
   const category = value => {
     const key = text(value, 40);
     return CATEGORY_ALIASES[key] || CATEGORY_ALIASES[key.toLowerCase()] || 'other';
@@ -106,9 +116,7 @@ const MezanStorage = (() => {
     normalized.rentPaid = profile.rentPaid === 'yes' ? 'yes' : 'no';
     normalized.goalType = profile.goalType === 'specific' ? 'specific' : 'general';
     normalized.goalName = text(profile.goalName, 80);
-    const today = new Date();
-    normalized.salaryDate = date(profile.salaryDate) ||
-      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    normalized.salaryDate = pastOrTodayDate(profile.salaryDate) || todayKey();
     return normalized;
   }
 
@@ -163,7 +171,7 @@ const MezanStorage = (() => {
 
   function normalizeReceipt(receipt, index) {
     if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) return null;
-    const receiptDate = date(receipt.date);
+    const receiptDate = pastOrTodayDate(receipt.date);
     const amount = number(receipt.amount);
     if (!receiptDate || !amount) return null;
     return {
