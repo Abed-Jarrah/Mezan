@@ -52,6 +52,7 @@ test('expense flow updates the interactive balance circle', async ({ page }) => 
   await page.getByRole('button', { name: 'حفظ المصروف' }).click();
   await expect(page.locator('.balance-orb-card')).toContainText('6,500');
   await expect(page.getByText('صرفت اليوم')).toBeVisible();
+  await expect(page.getByText('إنشاء نسخة الآن')).toHaveCount(0);
   await expect(page.getByText('مصروفات الدورة')).toBeVisible();
 });
 
