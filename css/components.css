@@ -332,6 +332,27 @@ input:focus,select:focus{
 .amount-actions{text-align:end}
 .backup-card{border-color:rgba(240,177,66,.38);background:linear-gradient(145deg,rgba(240,177,66,.12),rgba(19,53,46,.72))}
 
+.today-card{
+  border-color:rgba(112,225,173,.20);
+  background:
+    radial-gradient(circle at 100% 0,rgba(112,225,173,.16),transparent 34%),
+    linear-gradient(145deg,rgba(20,63,52,.96),rgba(9,35,29,.92));
+}
+.today-card.watch{border-color:rgba(242,201,109,.30)}
+.today-card.over{border-color:rgba(255,125,134,.32)}
+.today-card h3{font-size:18px;line-height:1.55}
+.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.today-grid>div{
+  padding:12px;
+  border:1px solid rgba(214,255,235,.09);
+  border-radius:16px;
+  background:rgba(4,22,18,.30);
+}
+.today-grid span{display:block;color:var(--muted);font-size:11px;font-weight:800;margin-bottom:6px}
+.today-grid b{font-size:18px;color:var(--txt)}
+.today-card.watch .today-grid b:first-of-type,.today-card.watch h3{color:var(--accent2)}
+.today-card.over .today-grid b:last-of-type,.today-card.over h3{color:#ff9aa1}
+
 .balance-orb-card{
   position:relative;
   display:grid;
@@ -381,6 +402,7 @@ input:focus,select:focus{
 @media(max-width:600px){
   .balance-orb-card{grid-template-columns:1fr;text-align:center}
   .orb-story{justify-items:center}
+  .today-grid{grid-template-columns:1fr}
 }
 
 @media(prefers-reduced-motion:reduce){

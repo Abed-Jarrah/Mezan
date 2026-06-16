@@ -151,6 +151,31 @@ const MezanCalculations = (() => {
     };
   }
 
+  function dailySummary({ cycle, remaining, expenses = [], today = new Date() }) {
+    const current = dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+    const start = parseDate(cycle?.start);
+    let endExclusive = parseDate(cycle?.endExclusive);
+    if (!endExclusive && start) {
+      endExclusive = clampedDate(start.getFullYear(), start.getMonth() + 1, cycle?.salaryDay || start.getDate());
+    }
+    if (!endExclusive || endExclusive <= parseDate(current)) {
+      endExclusive = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    }
+    const day = parseDate(current);
+    const daysLeft = day && endExclusive
+      ? Math.max(1, Math.ceil((endExclusive - day) / 86400000))
+      : 1;
+    const spentToday = expenses
+      .filter(expense => expense?.date === current)
+      .reduce((sum, expense) => sum + number(expense?.amount), 0);
+    const dailyAvailable = Math.round(number(remaining) / daysLeft);
+    const status = dailyAvailable <= 0
+      ? (spentToday > 0 ? 'over' : 'good')
+      : spentToday > dailyAvailable ? 'over' :
+        spentToday >= dailyAvailable * 0.75 ? 'watch' : 'good';
+    return { spentToday, daysLeft, dailyAvailable, status };
+  }
+
   function classifyMerchant(merchant, learned = {}) {
     const value = String(merchant || '').trim().toLowerCase();
     if (!value) return 'other';
@@ -169,6 +194,7 @@ const MezanCalculations = (() => {
     wizardTotals,
     cycleBalance,
     completedCycleReport,
+    dailySummary,
     savingsProgress,
     classifyMerchant,
     dateKey,

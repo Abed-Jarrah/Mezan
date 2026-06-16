@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260616-1"></script>
-  <script src="js/calculations.js?v=20260616-1"></script>
-  <script src="js/translations.js?v=20260616-1"></script>
-  <script src="js/currency.js?v=20260616-1"></script>
-  <script src="js/ui.js?v=20260616-1"></script>
+  <script src="js/storage.js?v=20260616-2"></script>
+  <script src="js/calculations.js?v=20260616-2"></script>
+  <script src="js/translations.js?v=20260616-2"></script>
+  <script src="js/currency.js?v=20260616-2"></script>
+  <script src="js/ui.js?v=20260616-2"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -302,6 +302,44 @@
         expenses: [{ amount: 1500 }]
       });
       equal(report.saved, 0);
+    });
+    test('ملخص اليوم يحسب صرف اليوم والمتاح المقترح', () => {
+      const summary = MezanCalculations.dailySummary({
+        cycle: { start: '2026-06-01', end: '2026-06-30', endExclusive: '2026-07-01' },
+        remaining: 900,
+        expenses: [
+          { amount: 100, date: '2026-06-10' },
+          { amount: 40, date: '2026-06-10' },
+          { amount: 300, date: '2026-06-09' }
+        ],
+        today: new Date(2026, 5, 10)
+      });
+      equal(summary.spentToday, 140);
+      equal(summary.daysLeft, 21);
+      equal(summary.dailyAvailable, 43);
+      equal(summary.status, 'over');
+    });
+    test('ملخص اليوم لا يحذر عندما لا يوجد صرف ولا متاح', () => {
+      const summary = MezanCalculations.dailySummary({
+        cycle: { start: '2026-06-01', end: '2026-06-30', endExclusive: '2026-07-01' },
+        remaining: 0,
+        expenses: [],
+        today: new Date(2026, 5, 10)
+      });
+      equal(summary.dailyAvailable, 0);
+      equal(summary.spentToday, 0);
+      equal(summary.status, 'good');
+    });
+    test('ملخص اليوم يقدر الأيام المتبقية للدورة المفتوحة من يوم الراتب', () => {
+      const summary = MezanCalculations.dailySummary({
+        cycle: { start: '2026-06-16', end: '2026-06-20', endExclusive: '', open: true, salaryDay: 16 },
+        remaining: 6500,
+        expenses: [{ amount: 500, date: '2026-06-16' }],
+        today: new Date(2026, 5, 16)
+      });
+      equal(summary.daysLeft, 30);
+      equal(summary.dailyAvailable, 217);
+      equal(summary.status, 'over');
     });
     test('التاريخ المحلي', () => equal(MezanUI.localDate(new Date(2026, 5, 4)), '2026-06-04'));
   </script>

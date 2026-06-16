@@ -26,6 +26,7 @@ test('wizard creates a valid plan using keyboard navigation', async ({ page }) =
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'اعتماد الخطة' }).click();
   await expect(page.getByRole('heading', { name: 'هذه دورتك المالية، وهذه فرصتك' })).toBeVisible();
+  await expect(page.getByText('ملخص اليوم')).toBeVisible();
   await expect(page.locator('.balance-orb-card')).toBeVisible();
 });
 
@@ -50,6 +51,7 @@ test('expense flow updates the interactive balance circle', async ({ page }) => 
   await page.locator('#exMerchant').fill('مطعم');
   await page.getByRole('button', { name: 'حفظ المصروف' }).click();
   await expect(page.locator('.balance-orb-card')).toContainText('6,500');
+  await expect(page.getByText('صرفت اليوم')).toBeVisible();
   await expect(page.getByText('مصروفات الدورة')).toBeVisible();
 });
 
