@@ -63,7 +63,18 @@ test('language switches the interface and currency symbol', async ({ page }) => 
   await expect(page.locator('#wizardCurrency')).toContainText('QAR');
 });
 
-test('assistant tab is visible and disabled until worker is configured', async ({ page }) => {
+test('assistant tab sends questions when worker is configured', async ({ page }) => {
+  await page.route('https://mezan-chat.mezan-finance.workers.dev/chat', async route => {
+    const request = route.request();
+    const payload = request.postDataJSON();
+    expect(payload.userId).toBe('mzn-e2e');
+    expect(payload.question).toBe('كم باقي من راتبي؟');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ answer: 'باقي مبلغ جيد من الراتب.' })
+    });
+  });
   await page.evaluate(() => {
     const today = new Date().toISOString().slice(0, 10);
     localStorage.setItem('mezan_plan_v5', JSON.stringify({
@@ -77,8 +88,10 @@ test('assistant tab is visible and disabled until worker is configured', async (
   await page.reload();
   await page.getByRole('button', { name: 'مساعد' }).click();
   await expect(page.getByRole('heading', { name: 'مساعد ميزان' })).toBeVisible();
-  await expect(page.getByText('يحتاج ربط Cloudflare Worker')).toBeVisible();
-  await expect(page.locator('#chatQuestion')).toBeDisabled();
+  await expect(page.locator('#chatQuestion')).toBeEnabled();
+  await page.locator('#chatQuestion').fill('كم باقي من راتبي؟');
+  await page.getByRole('button', { name: 'إرسال' }).click();
+  await expect(page.getByText('باقي مبلغ جيد من الراتب.')).toBeVisible();
 });
 
 test('reset dialog requires the confirmation word', async ({ page }) => {

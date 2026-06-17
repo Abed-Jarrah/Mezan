@@ -7,4 +7,4 @@ binding = "AI"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "adc2c8b371f44507b95442bb640e4ab0"

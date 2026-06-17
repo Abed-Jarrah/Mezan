@@ -7,7 +7,7 @@ let persistedState=JSON.parse(JSON.stringify(state));
 let idSequence=(()=>{if(globalThis.crypto?.getRandomValues){const values=new Uint16Array(1);crypto.getRandomValues(values);return values[0]%4096}return 0})();
 let cycleCache=null;
 let activeTab='dashboard';
-const CHAT_API_URL='';
+const CHAT_API_URL='https://mezan-chat.mezan-finance.workers.dev/chat';
 let chatMessages=[];
 let chatLoading=false;
 let editingExpenseId=null;
