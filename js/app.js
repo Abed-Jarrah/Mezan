@@ -7,6 +7,9 @@ let persistedState=JSON.parse(JSON.stringify(state));
 let idSequence=(()=>{if(globalThis.crypto?.getRandomValues){const values=new Uint16Array(1);crypto.getRandomValues(values);return values[0]%4096}return 0})();
 let cycleCache=null;
 let activeTab='dashboard';
+const CHAT_API_URL='';
+let chatMessages=[];
+let chatLoading=false;
 let editingExpenseId=null;
 let wizard={step:0,isEditing:false,currency:state.settings.currency||'QAR',salary:'',salaryDate:localDate(),extraIncome:'',rentPaid:'no',rent:'',internet:'',electricity:'',phone:'',fuel:'',fixed:'',loans:'',saveTarget:'',goalType:'general',goalName:'',goalAmount:'',goalMonths:''};
 function newId(){idSequence=(idSequence+1)%4096;return Date.now()*4096+idSequence}
@@ -30,6 +33,10 @@ Object.assign(T.ar,{importOk:'تم استيراد النسخة الاحتياط�
 Object.assign(T.en,{importOk:'Backup imported',importSkipped:n=>`${fmt(n)} invalid or extra records were skipped during import.`});
 Object.assign(T.ar,{todaySummary:'ملخص اليوم',todayAvailable:'المتاح المقترح اليوم',spentToday:'صرفت اليوم',daysLeft:'أيام متبقية',todayGood:'ممتاز، يومك ماشي بهدوء.',todayWatch:'انتبه شوي لباقي اليوم.',todayOver:'خفف المصاريف الصغيرة اليوم.'});
 Object.assign(T.en,{todaySummary:'Today summary',todayAvailable:'Suggested available today',spentToday:'Spent today',daysLeft:'days left',todayGood:'Great, your day is moving calmly.',todayWatch:'Watch the rest of today a little.',todayOver:'Ease up on small expenses today.'});
+Object.assign(T.ar,{chat:'مساعد',chatTitle:'مساعد ميزان',chatDesc:'اسأل عن دخلك، مصاريفك، ميزانياتك، أو هدف التوفير فقط.',chatPlaceholder:'مثلاً: كم باقي من راتبي؟',chatSend:'إرسال',chatPrivacyNote:'عند الإرسال، يذهب سؤالك وملخص مالي مختصر إلى مزود الذكاء الاصطناعي لحظة السؤال فقط. لا نخزن بياناتك المالية على السيرفر.',chatEmpty:'ابدأ بسؤال مالي قصير عن دورتك الحالية.',chatLimitReached:'وصلت للحد اليومي من الأسئلة المجانية.',chatError:'تعذر تشغيل المساعد حالياً. حاول لاحقاً.',chatThinking:'يفكر...',chatNotConfigured:'المساعد الذكي جاهز في الواجهة، لكنه يحتاج ربط Cloudflare Worker قبل الاستخدام.'});
+Object.assign(T.en,{chat:'Assistant',chatTitle:'Mezan Assistant',chatDesc:'Ask only about your income, expenses, budgets, or savings goal.',chatPlaceholder:'Example: how much salary is left?',chatSend:'Send',chatPrivacyNote:'When you send, your question and a short financial summary go to the AI provider only for that request. We do not store your financial data on the server.',chatEmpty:'Start with a short finance question about your current cycle.',chatLimitReached:'You reached the free daily question limit.',chatError:'The assistant is unavailable right now. Try again later.',chatThinking:'Thinking...',chatNotConfigured:'The assistant UI is ready, but it needs a Cloudflare Worker URL before use.'});
+Object.assign(T.ar,{local:'محلي افتراضياً',privacyText:'تبقى بياناتك محفوظة على جهازك. عند تفعيل المساعد واستخدامه فقط، يُرسل سؤالك وملخص مالي مختصر لمعالجة الرد دون تخزين بياناتك المالية على السيرفر.'});
+Object.assign(T.en,{local:'Local by default',privacyText:'Your data stays on this device. Only when the assistant is enabled and used, your question and a short financial summary are sent to generate the reply without storing your financial data on the server.'});
 function tr(k){return MezanTranslations.get(T,state.settings.lang,k)}function dir(){return MezanTranslations.direction(state.settings.lang)}
 function save(){try{state=MezanStorage.save(state);persistedState=JSON.parse(JSON.stringify(state));cycleCache=null;return true}catch{state=JSON.parse(JSON.stringify(persistedState));cycleCache=null;toast(tr('storageFull'));return false}}
 function money(n){const c=state.settings.currency||wizard.currency||'QAR';return `${fmt(n)} ${currencySymbol(c,state.settings.lang)}`}
@@ -138,7 +145,7 @@ function setChoice(k,v){collect();wizard[k]=v;renderWizard()}function nextStep()
 function finishWizard(){collect();const totals=totalsFromWizard();if(num(wizard.salary)<=0){wizard.step=0;renderWizard();toast(tr('toastSalary'));return}if(!wizard.isEditing&&!validFirstSalaryDate()){wizard.step=0;renderWizard();toast(tr('toastFirstDate'));return}if(!hasValidRent()){wizard.step=1;renderWizard();toast(tr('toastRent'));$('rent')?.focus();return}if(!validSpecificGoal()){wizard.step=4;renderWizard();toast(tr('toastGoalDetails'));return}if(totals.free<0){toast(tr('adviceBad'));return}const wasEditing=wizard.isEditing;state.settings.currency=wizard.currency;const previousDate=state.profile?.salaryDate;state.profile={salary:num(wizard.salary),salaryDate:wasEditing?previousDate:(wizard.salaryDate||localDate()),extraIncome:num(wizard.extraIncome),rentPaid:wizard.rentPaid,rent:num(wizard.rent),internet:num(wizard.internet),electricity:num(wizard.electricity),phone:num(wizard.phone),fuel:num(wizard.fuel),fixed:num(wizard.fixed),loans:num(wizard.loans),saveTarget:num(wizard.saveTarget),goalType:wizard.goalType,goalName:wizard.goalName||tr('generalSave'),goalAmount:num(wizard.goalAmount),goalMonths:num(wizard.goalMonths)};if(!state.salaryReceipts.length)state.salaryReceipts.push({id:newId(),date:state.profile.salaryDate,amount:state.profile.salary,planSnapshot:planSnapshot()});else if(wasEditing)state.salaryReceipts[state.salaryReceipts.length-1].planSnapshot=planSnapshot();wizard.isEditing=false;if(!save())return;init();toast(tr('toastDone'),'success')}
 function restartWizard(){const p=state.profile||{};wizard={step:0,isEditing:true,currency:state.settings.currency||'QAR',salary:p.salary||'',salaryDate:p.salaryDate||localDate(),extraIncome:p.extraIncome||'',rentPaid:p.rentPaid||'no',rent:p.rent||'',internet:p.internet||'',electricity:p.electricity||'',phone:p.phone||'',fuel:p.fuel||'',fixed:p.fixed||'',loans:p.loans||'',saveTarget:p.saveTarget||'',goalType:p.goalType||'general',goalName:p.goalName||'',goalAmount:p.goalAmount||'',goalMonths:p.goalMonths||''};$('onboarding').classList.remove('hidden');$('appArea').classList.add('hidden');$('tabs').classList.add('hidden');renderWizard()}
 function cancelEdit(){wizard.isEditing=false;init();showTab('settings')}
-function renderTab(id){({dashboard:renderDashboard,expense:renderExpense,budget:renderBudget,settings:renderSettings}[id]||renderDashboard)()}
+function renderTab(id){({dashboard:renderDashboard,expense:renderExpense,budget:renderBudget,chat:renderChat,settings:renderSettings}[id]||renderDashboard)()}
 function renderAll(){renderTab(activeTab)}
 function goalScheduleText(profile,saving){
   if(profile.goalType!=='specific'||!profile.goalAmount)return'';
@@ -246,6 +253,45 @@ function renderBudget(){
 function saveCategoryBudgets(){['food','transport','bills','fun','other'].forEach(category=>state.categoryBudgets[category]=num($(`budget-${category}`).value));if(!save())return;renderBudget();toast(tr('budgetsSaved'),'success')}
 function addRecurringPayment(){const name=$('recurringName').value.trim(),amount=num($('recurringAmount').value),day=Math.min(31,Math.max(1,num($('recurringDay').value)||1)),category=$('recurringCategory').value;if(!name||!amount){toast(tr('toastAmount'));return}state.recurringPayments.push({id:newId(),name,amount,day,category,active:true});if(!save())return;syncRecurringPayments();showTab('budget');toast(tr('recurringSaved'),'success')}
 function deleteRecurring(id){if(!confirm(tr('deleteRecurringConfirm')))return;state.recurringPayments=state.recurringPayments.filter(payment=>payment.id!==id);state.expenses.forEach(expense=>{if(expense.recurringId===id)expense.recurringId=null});if(!save())return;showTab('budget')}
+function buildFinancialContext(){
+  const cycle=currentCycle(),p=state.profile||{},recent=cycleExpenses().slice(0,12).map(expense=>`${expense.date}: ${expense.merchant||categoryLabel(expense.category)} ${money(expense.amount)} (${expenseKindLabel(expense)})`).join('\n');
+  const budgets=['food','transport','bills','fun','other'].map(category=>`${categoryLabel(category)}: spent ${money(categorySpent(category))}, limit ${state.categoryBudgets[category]?money(state.categoryBudgets[category]):tr('noLimit')}`).join('\n');
+  return [
+    `Language: ${state.settings.lang}`,
+    `Currency: ${state.settings.currency}`,
+    `Current cycle: ${cycle.start} to ${cycle.end||localDate()}`,
+    `Cycle income: ${money(cycleIncome())}`,
+    `Fixed costs: ${money(fixedCosts())}`,
+    `Planned saving: ${money(plannedSaving())}`,
+    `Cycle start available: ${money(cycleStartAvailable())}`,
+    `Spent this cycle: ${money(totalCycleSpent())}`,
+    `Remaining from salary: ${money(salaryRemaining())}`,
+    `Savings goal: ${p.goalName||tr('generalSave')} (${money(p.goalAmount||0)})`,
+    `Budgets:\n${budgets}`,
+    `Recent cycle expenses:\n${recent||tr('noExpenses')}`
+  ].join('\n');
+}
+function chatMessageRow(message){return `<div class="chat-msg ${message.role}"><b>${message.role==='user'?tr('chat'):tr('chatTitle')}</b><p>${escapeHtml(message.text)}</p></div>`}
+function chatMessagesHtml(){return chatMessages.length?chatMessages.map(chatMessageRow).join(''):`<div class="empty">${tr('chatEmpty')}</div>`}
+function renderChat(){
+  const configured=!!CHAT_API_URL&&/\/chat$/.test(CHAT_API_URL);
+  $('chat').innerHTML=`<div class="card chat-card"><div class="section"><div><h3>${tr('chatTitle')}</h3><p class="copy">${tr('chatDesc')}</p></div><span class="section-icon">✦</span></div><p class="chat-privacy">${tr('chatPrivacyNote')}</p>${configured?'':`<div class="notice">${tr('chatNotConfigured')}</div>`}<div class="chat-thread" id="chatThread" aria-live="polite">${chatMessagesHtml()}${chatLoading?`<div class="chat-msg bot"><b>${tr('chatTitle')}</b><p>${tr('chatThinking')}</p></div>`:''}</div><div class="chat-input-row"><input id="chatQuestion" maxlength="300" placeholder="${tr('chatPlaceholder')}" ${chatLoading||!configured?'disabled':''}><button class="btn" onclick="sendChatMessage()" ${chatLoading||!configured?'disabled':''}>${tr('chatSend')}</button></div></div>`;
+}
+async function sendChatMessage(){
+  const input=$('chatQuestion'),question=input?.value.trim();
+  if(!question)return;
+  chatMessages.push({role:'user',text:question});
+  chatLoading=true;renderChat();
+  try{
+    const response=await fetch(CHAT_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:state.settings.chatUserId,lang:state.settings.lang,question,financialContext:buildFinancialContext()})});
+    const data=await response.json().catch(()=>({}));
+    chatMessages.push({role:'bot',text:data.answer||data.message||tr(response.status===429?'chatLimitReached':'chatError')});
+  }catch{
+    chatMessages.push({role:'bot',text:tr('chatError')});
+  }finally{
+    chatLoading=false;renderChat();
+  }
+}
 function backupDue(){
   if(!state.expenses.length)return false;
   const today=parseDate(localDate()),last=parseDate(state.settings.lastBackupAt);

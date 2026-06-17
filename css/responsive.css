@@ -16,14 +16,14 @@ input,select,button{max-width:100%;}
   .app{padding-bottom:max(28px,var(--safe-bottom))!important;}
   .tabs{position:sticky;bottom:auto;top:73px;margin:0 auto 18px;padding:10px var(--page-pad);background:rgba(7,10,16,.72);border-top:0;border-bottom:1px solid rgba(255,255,255,.07);}
   .tabs.hidden{display:none!important;}
-  .tabsin{max-width:var(--content-max)!important;grid-template-columns:repeat(4,minmax(120px,1fr));}
+  .tabsin{max-width:var(--content-max)!important;grid-template-columns:repeat(5,minmax(100px,1fr));}
   .tab{font-size:13px;padding:12px 10px;}
   #dashboard,#budget{display:grid;grid-template-columns:1.08fr .92fr;gap:var(--space);align-items:start;}
   #dashboard .hero{min-height:196px;display:grid;align-content:center;}
   #dashboard .today-card{min-height:196px;}
   #dashboard .balance-orb-card{grid-column:1/-1;}
   #dashboard.hidden,#budget.hidden,#expense.hidden,#settings.hidden{display:none!important;}
-  #expense,#settings,#onboarding{max-width:820px;margin:0 auto;}
+  #expense,#chat,#settings,#onboarding{max-width:820px;margin:0 auto;}
   .btns{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (min-width:1024px){
