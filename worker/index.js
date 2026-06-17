@@ -1,4 +1,4 @@
-const MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
 const MAX_QUESTIONS = 5;
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_QUESTION_LENGTH = 300;
@@ -27,7 +27,7 @@ function corsHeaders(request) {
 function jsonResponse(request, body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders(request) }
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(request) }
   });
 }
 
