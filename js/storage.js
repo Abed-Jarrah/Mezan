@@ -6,6 +6,8 @@ const MezanStorage = (() => {
   const CURRENCIES = new Set(['QAR', 'SAR', 'AED', 'KWD', 'BHD', 'OMR', 'JOD', 'USD', 'EUR', 'TRY']);
   const EXPENSE_KINDS = new Set(['regular', 'recurring', 'exceptional', 'giving']);
   const EXPENSE_SUBTYPES = new Set(['parents', 'family', 'charity', 'gift', 'emergency', 'exceptional']);
+  const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+  const SALARY_HISTORY_YEARS = 3;
   const REPORT_KEYS = new Set([
     'rent', 'internet', 'electricity', 'phone', 'fuel', 'fixed', 'loans',
     'food', 'transport', 'bills', 'fun', 'other', 'exceptional', 'giving'
@@ -53,9 +55,15 @@ const MezanStorage = (() => {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   };
 
+  const minSalaryDate = () => {
+    const min = new Date();
+    min.setFullYear(min.getFullYear() - SALARY_HISTORY_YEARS);
+    return `${min.getFullYear()}-${String(min.getMonth() + 1).padStart(2, '0')}-${String(min.getDate()).padStart(2, '0')}`;
+  };
+
   const pastOrTodayDate = value => {
     const normalized = date(value);
-    return normalized && normalized <= todayKey() ? normalized : '';
+    return normalized && normalized >= minSalaryDate() && normalized <= todayKey() ? normalized : '';
   };
 
   const generateChatUserId = () =>
@@ -103,10 +111,10 @@ const MezanStorage = (() => {
     if (!source || typeof source !== 'object' || Array.isArray(source)) return {};
     return Object.entries(source).slice(0, 500).reduce((result, [merchant, category]) => {
       const key = text(merchant.toLowerCase(), 100);
-      if (key) result[key] = category === 'auto' ? 'other' : CATEGORY_ALIASES[category] ||
+      if (key && !BLOCKED_KEYS.has(key)) result[key] = category === 'auto' ? 'other' : CATEGORY_ALIASES[category] ||
         CATEGORY_ALIASES[String(category || '').toLowerCase()] || 'other';
       return result;
-    }, {});
+    }, Object.create(null));
   }
 
   function normalizeProfile(profile) {

@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260617-chat1"></script>
-  <script src="js/calculations.js?v=20260617-chat1"></script>
-  <script src="js/translations.js?v=20260617-chat1"></script>
-  <script src="js/currency.js?v=20260617-chat1"></script>
-  <script src="js/ui.js?v=20260617-chat1"></script>
+  <script src="js/storage.js?v=20260618-sec1"></script>
+  <script src="js/calculations.js?v=20260618-sec1"></script>
+  <script src="js/translations.js?v=20260618-sec1"></script>
+  <script src="js/currency.js?v=20260618-sec1"></script>
+  <script src="js/ui.js?v=20260618-sec1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -166,6 +166,16 @@
       equal(state.profile.salaryDate, today);
       equal(state.salaryReceipts[0].date, today);
     });
+    test('تاريخ راتب قديم جداً في الملف المستورد لا يصبح دورة حالية', () => {
+      const today = MezanUI.localDate();
+      const state = MezanStorage.normalize({
+        settings: {},
+        profile: { salary: 9000, salaryDate: '1925-01-01' },
+        expenses: []
+      });
+      equal(state.profile.salaryDate, today);
+      equal(state.salaryReceipts[0].date, today);
+    });
     test('سجلات الرواتب المستقبلية تُرفض عند الاستيراد', () => {
       const state = MezanStorage.normalize({
         settings: {},
@@ -176,6 +186,15 @@
       });
       equal(state.salaryReceipts.length, 1);
       equal(state.salaryReceipts[0].date, '2026-05-01');
+    });
+    test('سجلات الرواتب القديمة جداً تُرفض عند الاستيراد', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        salaryReceipts: [
+          { amount: 9000, date: '1925-01-01' }
+        ]
+      });
+      equal(state.salaryReceipts.length, 0);
     });
     test('حد المصاريف المستوردة لا يتجاوز 5000 سجل', () => {
       const state = MezanStorage.normalize({
@@ -266,6 +285,16 @@
         expenses: [{ amount: 20, date: '2026-06-10', category: 'FOOD' }]
       });
       equal(state.expenses[0].category, 'food');
+    });
+    test('مفاتيح التصنيف الخطرة لا تدخل قاموس التجار', () => {
+      const state = MezanStorage.normalize({
+        settings: {},
+        merchantCategories: { '__proto__': 'food', constructor: 'fun', prototype: 'bills', 'متجر آمن': 'food' }
+      });
+      equal(state.merchantCategories['متجر آمن'], 'food');
+      equal(Object.prototype.hasOwnProperty.call(state.merchantCategories, '__proto__'), false);
+      equal(Object.prototype.hasOwnProperty.call(state.merchantCategories, 'constructor'), false);
+      equal(Object.prototype.hasOwnProperty.call(state.merchantCategories, 'prototype'), false);
     });
     test('تعقيم مفاتيح التقارير والأنواع المستوردة', () => {
       const state = MezanStorage.normalize({
