@@ -399,10 +399,21 @@ input:focus,select:focus{
 .dialog-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:16px;background:rgba(255,125,134,.14);color:var(--bad);font-size:24px;font-weight:900}
 .connection-banner{position:sticky;z-index:50;top:0;padding:9px 16px;background:#553c0b;color:#fff2c9;text-align:center;font-size:12px;font-weight:800;border-bottom:1px dashed #f2c96d}
 
+.chat-card{display:grid;gap:14px}
+.chat-privacy{font-size:12px;line-height:1.8;color:var(--muted);padding:12px;border:1px dashed rgba(242,201,109,.25);border-radius:16px;background:rgba(242,201,109,.07)}
+.chat-thread{display:grid;gap:12px;min-height:230px;max-height:52vh;overflow:auto;padding:12px;border:1px solid rgba(214,255,235,.08);border-radius:18px;background:rgba(4,22,18,.28)}
+.chat-msg{max-width:min(88%,680px);padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(214,255,235,.08)}
+.chat-msg.user{justify-self:end;background:rgba(112,225,173,.12);border-color:rgba(112,225,173,.22)}
+.chat-msg.bot{justify-self:start;background:rgba(242,201,109,.08);border-color:rgba(242,201,109,.16)}
+.chat-msg b{display:block;margin-bottom:5px;font-size:11px;color:var(--muted)}
+.chat-msg p{line-height:1.8}
+.chat-input-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+
 @media(max-width:600px){
   .balance-orb-card{grid-template-columns:1fr;text-align:center}
   .orb-story{justify-items:center}
   .today-grid{grid-template-columns:1fr}
+  .chat-input-row{grid-template-columns:1fr}
 }
 
 @media(prefers-reduced-motion:reduce){

@@ -12,11 +12,11 @@
 <body>
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
-  <script src="js/storage.js?v=20260617-1"></script>
-  <script src="js/calculations.js?v=20260617-1"></script>
-  <script src="js/translations.js?v=20260617-1"></script>
-  <script src="js/currency.js?v=20260617-1"></script>
-  <script src="js/ui.js?v=20260617-1"></script>
+  <script src="js/storage.js?v=20260617-chat1"></script>
+  <script src="js/calculations.js?v=20260617-chat1"></script>
+  <script src="js/translations.js?v=20260617-chat1"></script>
+  <script src="js/currency.js?v=20260617-chat1"></script>
+  <script src="js/ui.js?v=20260617-chat1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -149,6 +149,12 @@
       equal(state.settings.lang, 'ar');
       equal(state.expenses.length, 0);
       equal(state.schemaVersion, 5);
+    });
+    test('إنشاء معرف مجهول ثابت للمساعد الذكي', () => {
+      const state = MezanStorage.normalize({ settings: { chatUserId: 'mzn-test-user' } });
+      equal(state.settings.chatUserId, 'mzn-test-user');
+      const generated = MezanStorage.normalize({ settings: {} });
+      if (!generated.settings.chatUserId) throw new Error('missing chatUserId');
     });
     test('تاريخ راتب مستقبلي في الملف المستورد لا يصبح دورة حالية', () => {
       const today = MezanUI.localDate();

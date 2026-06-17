@@ -1,0 +1,10 @@
+name = "mezan-chat"
+main = "index.js"
+compatibility_date = "2024-09-01"
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"

@@ -58,6 +58,11 @@ const MezanStorage = (() => {
     return normalized && normalized <= todayKey() ? normalized : '';
   };
 
+  const generateChatUserId = () =>
+    globalThis.crypto?.randomUUID
+      ? crypto.randomUUID()
+      : `mzn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
   const category = value => {
     const key = text(value, 40);
     return CATEGORY_ALIASES[key] || CATEGORY_ALIASES[key.toLowerCase()] || 'other';
@@ -88,7 +93,8 @@ const MezanStorage = (() => {
       settings: {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR',
-        lastBackupAt: date(settings.lastBackupAt)
+        lastBackupAt: date(settings.lastBackupAt),
+        chatUserId: text(settings.chatUserId, 64) || generateChatUserId()
       }
     };
   }
