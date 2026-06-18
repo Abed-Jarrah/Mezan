@@ -1,4 +1,4 @@
-const CACHE = 'mezan-v13-20260620-scale1';
+const CACHE = 'mezan-v14-20260620-scale2';
 const ASSETS = [
   './',
   './index.html',

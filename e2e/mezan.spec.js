@@ -81,6 +81,9 @@ test('scale visual identity theme can be changed from settings', async ({ page }
   await page.getByRole('button', { name: 'إعدادات' }).click();
   await page.getByRole('button', { name: 'فضي ملكي' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'silver');
+  await page.getByRole('button', { name: 'رخامي فاتح' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'marble');
+  await expect(page.locator('html')).toHaveCSS('--scale-bg', '#f4eee1');
 });
 
 test('language switches the interface and currency symbol', async ({ page }) => {
