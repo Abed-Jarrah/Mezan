@@ -60,6 +60,29 @@ test('expense flow updates the interactive balance circle', async ({ page }) => 
   await expect(page.getByText('مصروفات الدورة')).toBeVisible();
 });
 
+test('scale visual identity theme can be changed from settings', async ({ page }) => {
+  await page.evaluate(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('mezan_plan_v5', JSON.stringify({
+      schemaVersion: 5,
+      settings: { lang: 'ar', currency: 'QAR', lastBackupAt: '', scaleTheme: 'gold' },
+      profile: {
+        salary: 8000, salaryDate: today, extraIncome: 0,
+        rentPaid: 'no', rent: 0, internet: 0, electricity: 0, phone: 0,
+        fuel: 0, fixed: 0, loans: 0, saveTarget: 1000, goalType: 'general',
+        goalName: '', goalAmount: 0, goalMonths: 0
+      },
+      expenses: [], categoryBudgets: {}, recurringPayments: [], salaryReceipts: [{ id: 1, date: today, amount: 8000 }],
+      cycleReports: [], merchantCategories: {}, budgetAlerts: {}
+    }));
+  });
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'gold');
+  await page.getByRole('button', { name: 'إعدادات' }).click();
+  await page.getByRole('button', { name: 'فضي ملكي' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'silver');
+});
+
 test('language switches the interface and currency symbol', async ({ page }) => {
   await page.getByRole('button', { name: 'EN' }).click();
   await expect(page.getByText('What should we call you?')).toBeVisible();

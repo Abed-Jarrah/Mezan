@@ -4,6 +4,7 @@ const MezanStorage = (() => {
   const SCHEMA_VERSION = 5;
   const LANGUAGES = new Set(['ar', 'en']);
   const CURRENCIES = new Set(['QAR', 'SAR', 'AED', 'KWD', 'BHD', 'OMR', 'JOD', 'USD', 'EUR', 'TRY']);
+  const SCALE_THEMES = new Set(['gold', 'silver', 'copper', 'emerald', 'marble']);
   const EXPENSE_KINDS = new Set(['regular', 'recurring', 'exceptional', 'giving']);
   const EXPENSE_SUBTYPES = new Set(['parents', 'family', 'charity', 'gift', 'emergency', 'exceptional']);
   const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -103,7 +104,8 @@ const MezanStorage = (() => {
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR',
         lastBackupAt: date(settings.lastBackupAt),
         chatUserId: text(settings.chatUserId, 64) || generateChatUserId(),
-        displayName: text(settings.displayName, 60)
+        displayName: text(settings.displayName, 60),
+        scaleTheme: SCALE_THEMES.has(settings.scaleTheme) ? settings.scaleTheme : 'gold'
       }
     };
   }

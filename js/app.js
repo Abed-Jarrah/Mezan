@@ -11,6 +11,7 @@ const CHAT_API_URL='https://mezan-chat.mezan-finance.workers.dev/chat';
 const SALARY_HISTORY_YEARS=3;
 const MAX_RECURRING_SYNC_MONTHS=36;
 const BLOCKED_MERCHANT_KEYS=new Set(['__proto__','constructor','prototype']);
+const SCALE_THEMES=['gold','silver','copper','emerald','marble'];
 let chatMessages=[];
 let chatLoading=false;
 let editingExpenseId=null;
@@ -43,6 +44,8 @@ Object.assign(T.ar,{local:'محلي افتراضياً',privacyText:'تبقى ب
 Object.assign(T.en,{local:'Local by default',privacyText:'Your data stays on this device. Only when the assistant is enabled and used, your question and a short financial summary are sent to generate the reply without storing your financial data on the server.'});
 Object.assign(T.ar,{nameTitle:'كيف نناديك؟',nameDesc:'اختر اسماً يظهر لك في ميزان. يمكنك تغييره لاحقاً من الإعدادات.',displayName:'اسمك',displayNamePlaceholder:'مثلاً: أحمد',displayNameHint:'هذه الخطوة اختيارية، يمكنك تركها فارغة.',greeting:n=>`أهلاً ${n}`,displayNameSaved:'تم حفظ اسمك'});
 Object.assign(T.en,{nameTitle:'What should we call you?',nameDesc:'Pick a name to see in Mezan. You can change it later in Settings.',displayName:'Your name',displayNamePlaceholder:'e.g. Ahmad',displayNameHint:'This step is optional, you can leave it blank.',greeting:n=>`Hi ${n}`,displayNameSaved:'Your name was saved'});
+Object.assign(T.ar,{visualIdentity:'الهوية البصرية',scaleTheme:'ثيم الميزان',scaleThemeDesc:'اختر مزاج الألوان لتجربة الميزان الحقيقي.',scaleGold:'ذهبي كلاسيكي',scaleSilver:'فضي ملكي',scaleCopper:'نحاسي وردي',scaleEmerald:'خزنة زمردية',scaleMarble:'رخامي فاتح',scaleMetaphor:'الميزان الحقيقي',scaleIncomePan:'كفة المتاح',scaleSpendingPan:'كفة المصروف',scaleWeights:'أوزان التصنيفات',scaleSavedCoins:'برج التوفير'});
+Object.assign(T.en,{visualIdentity:'Visual identity',scaleTheme:'Scale theme',scaleThemeDesc:'Choose the color mood for The Scale experience.',scaleGold:'Classic Gold',scaleSilver:'Royal Silver',scaleCopper:'Rose Copper',scaleEmerald:'Emerald Vault',scaleMarble:'Marble Light',scaleMetaphor:'The Scale',scaleIncomePan:'Available pan',scaleSpendingPan:'Spending pan',scaleWeights:'Category weights',scaleSavedCoins:'Savings coin tower'});
 function tr(k){return MezanTranslations.get(T,state.settings.lang,k)}function dir(){return MezanTranslations.direction(state.settings.lang)}
 function save(){try{state=MezanStorage.save(state);persistedState=JSON.parse(JSON.stringify(state));cycleCache=null;return true}catch{state=JSON.parse(JSON.stringify(persistedState));cycleCache=null;toast(tr('storageFull'));return false}}
 function money(n){const c=state.settings.currency||wizard.currency||'QAR';return `${fmt(n)} ${currencySymbol(c,state.settings.lang)}`}
@@ -53,11 +56,14 @@ function formatMoneyField(el){const raw=clean(el.value); if(!raw){el.value='';re
 function attachMoneyFormatting(){document.querySelectorAll('[data-money]').forEach(el=>el.addEventListener('input',()=>formatMoneyField(el)))}
 let toastTimer;
 function toast(msg,type='error'){const t=$('toast');clearTimeout(toastTimer);t.textContent=msg;t.className=`toast ${type} show`;toastTimer=setTimeout(()=>{t.classList.remove('show')},3000)}
-function applyLocale(){document.documentElement.lang=state.settings.lang;document.documentElement.dir=dir();$('appName').textContent=tr('app');$('logo').textContent=tr('logo');$('tagline').textContent=tr('tag');$('arBtn').classList.toggle('active',state.settings.lang==='ar');$('enBtn').classList.toggle('active',state.settings.lang==='en');$('arBtn').setAttribute('aria-pressed',state.settings.lang==='ar');$('enBtn').setAttribute('aria-pressed',state.settings.lang==='en');document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=tr(e.dataset.i18n))}
+function applyLocale(){document.documentElement.lang=state.settings.lang;document.documentElement.dir=dir();document.documentElement.dataset.scaleTheme=state.settings.scaleTheme||'gold';$('appName').textContent=tr('app');$('logo').textContent=tr('logo');$('tagline').textContent=tr('tag');$('arBtn').classList.toggle('active',state.settings.lang==='ar');$('enBtn').classList.toggle('active',state.settings.lang==='en');$('arBtn').setAttribute('aria-pressed',state.settings.lang==='ar');$('enBtn').setAttribute('aria-pressed',state.settings.lang==='en');document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=tr(e.dataset.i18n))}
 function setLang(l){state.settings.lang=l;save();applyLocale();wizard.isEditing?renderWizard():init()}
 function hasFinancialData(){return !!state.profile||state.expenses.length>0||state.salaryReceipts.length>0}
 function setCurrency(c){if(hasFinancialData()&&c!==state.settings.currency){toast(tr('currencyLocked'));renderWizard();return}wizard.currency=c;if(!state.profile){state.settings.currency=c;save()}renderWizard()}
 function saveDisplayName(value){state.settings.displayName=String(value||'').trim().slice(0,60);if(save())toast(tr('displayNameSaved'),'success')}
+function scaleThemeLabel(theme){return tr({gold:'scaleGold',silver:'scaleSilver',copper:'scaleCopper',emerald:'scaleEmerald',marble:'scaleMarble'}[theme]||'scaleGold')}
+function setScaleTheme(theme){if(!SCALE_THEMES.includes(theme))return;state.settings.scaleTheme=theme;if(save()){applyLocale();renderTab(activeTab)}}
+function scaleThemeOptions(){return `<div class="theme-options">${SCALE_THEMES.map(theme=>`<button class="theme-swatch ${state.settings.scaleTheme===theme?'active':''}" data-theme="${theme}" onclick="setScaleTheme('${theme}')" aria-pressed="${state.settings.scaleTheme===theme}"><i aria-hidden="true"></i><span>${scaleThemeLabel(theme)}</span></button>`).join('')}</div>`}
 function totalIncome(){const p=state.profile||{};return num(p.salary)+num(p.extraIncome)}
 function fixedCosts(){const p=state.profile||{};return num(p.rent)+num(p.internet)+num(p.electricity)+num(p.phone)+num(p.fuel)+num(p.fixed)+num(p.loans)}
 function planSnapshot(){const p=state.profile||{};return {extraIncome:num(p.extraIncome),rent:num(p.rent),internet:num(p.internet),electricity:num(p.electricity),phone:num(p.phone),fuel:num(p.fuel),fixed:num(p.fixed),loans:num(p.loans),saveTarget:num(p.saveTarget)}}
@@ -95,18 +101,35 @@ function balanceVisual(remaining,available){
   return {ratio,spentPct,status,statusText};
 }
 function balanceOrb(remaining,available){
-  const visual=balanceVisual(remaining,available),circumference=289.03,offset=circumference*(1-visual.ratio);
-  return `<section class="balance-orb-card ${visual.status}" aria-label="${escapeHtml(tr('remainingCircle'))}: ${escapeHtml(money(remaining))}">
-    <div class="balance-orb">
-      <svg viewBox="0 0 112 112" role="img" aria-hidden="true">
-        <circle class="orb-track" cx="56" cy="56" r="46"></circle>
-        <circle class="orb-progress" cx="56" cy="56" r="46" style="stroke-dashoffset:${offset}"></circle>
-      </svg>
-      <div class="orb-center"><span>${tr('remainingCircle')}</span><strong>${money(remaining)}</strong><small>${visual.spentPct}% ${tr('spentCircle')}</small></div>
+  const visual=balanceVisual(remaining,available),spent=Math.max(0,available-remaining),tilt=Math.max(-8,Math.min(8,(visual.spentPct-50)*.16));
+  const incomeY=visual.spentPct>50?112:124,spentY=visual.spentPct>50?124:112;
+  return `<section class="balance-orb-card scale-card ${visual.status}" aria-label="${escapeHtml(tr('scaleMetaphor'))}: ${escapeHtml(tr('remainingCircle'))} ${escapeHtml(money(remaining))}">
+    <div class="scale-wrap">
+      <div class="scale-visual">
+        <svg viewBox="0 0 220 220" role="img" aria-hidden="true">
+          <path class="scale-post" d="M103 74h14v78h-14zM74 164h72l-12 18H86z"></path>
+          <g class="scale-beam" style="transform:rotate(${tilt}deg)">
+            <line class="scale-line" x1="36" y1="74" x2="184" y2="74"></line>
+            <circle class="scale-coin" cx="110" cy="74" r="10"></circle>
+            <line class="scale-line" x1="54" y1="76" x2="42" y2="${incomeY}"></line>
+            <line class="scale-line" x1="54" y1="76" x2="66" y2="${incomeY}"></line>
+            <path class="scale-pan" d="M28 ${incomeY} Q54 ${incomeY+22} 80 ${incomeY} Z"></path>
+            <line class="scale-line" x1="166" y1="76" x2="154" y2="${spentY}"></line>
+            <line class="scale-line" x1="166" y1="76" x2="178" y2="${spentY}"></line>
+            <path class="scale-pan" d="M140 ${spentY} Q166 ${spentY+22} 192 ${spentY} Z"></path>
+          </g>
+          <text class="scale-label" x="54" y="194" text-anchor="middle">${tr('scaleIncomePan')}</text>
+          <text class="scale-amount" x="54" y="210" text-anchor="middle">${fmt(available)}</text>
+          <text class="scale-label" x="166" y="194" text-anchor="middle">${tr('scaleSpendingPan')}</text>
+          <text class="scale-amount" x="166" y="210" text-anchor="middle">${fmt(spent)}</text>
+        </svg>
+      </div>
+      <div class="scale-story"><span class="status-tag ${visual.status}"><i aria-hidden="true">${visual.status==='healthy'?'✓':visual.status==='warning'?'!':'×'}</i>${visual.statusText}</span><p>${tr('remainingCircle')}: <b>${money(remaining)}</b><br>${tr('cycleAvailableStart')}: <b>${money(available)}</b></p>${scaleWeights()}${coinTower()}</div>
     </div>
-    <div class="orb-story"><span class="status-tag ${visual.status}"><i aria-hidden="true">${visual.status==='healthy'?'✓':visual.status==='warning'?'!':'×'}</i>${visual.statusText}</span><p>${tr('cycleAvailableStart')}: <b>${money(available)}</b></p></div>
   </section>`;
 }
+function scaleWeights(){const entries=['food','transport','bills','fun','other'].map(category=>({category,amount:categorySpent(category)})).filter(item=>item.amount>0).sort((a,b)=>b.amount-a.amount).slice(0,4);if(!entries.length)return `<div class="weight-rack"><div class="weight-chip"><span class="weight-disc">0</span><small>${tr('scaleWeights')}</small></div></div>`;return `<div><div class="hint">${tr('scaleWeights')}</div><div class="weight-rack">${entries.map(item=>`<div class="weight-chip"><span class="weight-disc">${fmt(item.amount)}</span><small>${categoryLabel(item.category)}</small></div>`).join('')}</div></div>`}
+function coinTower(){const p=state.profile||{},saving=plannedSaving(),goalProgress=savingsProgress(p.goalAmount,state.cycleReports),coins=Math.max(1,Math.min(6,Math.round((p.goalType==='specific'?goalProgress.progress:pct(saving,cycleIncome()))/18)));return `<div><div class="hint">${tr('scaleSavedCoins')}</div><div class="coin-tower" aria-hidden="true">${Array.from({length:coins},()=>'<i></i>').join('')}</div></div>`}
 function dailySummaryCard(){
   const summary=dailySummary({cycle:currentCycle(),remaining:salaryRemaining(),expenses:cycleExpenses(),today:new Date()});
   const label={good:'todayGood',watch:'todayWatch',over:'todayOver'}[summary.status]||'todayGood';
@@ -310,7 +333,7 @@ function backupDue(){
   const daysSinceFirst=first?Math.floor((today-first)/86400000):0;
   return state.expenses.length>=10||daysSinceFirst>=7;
 }
-function renderSettings(){const cycle=currentCycle(),locked=hasFinancialData();$('settings').innerHTML=`<div class="card"><div class="section"><div><h3>${tr('openCycle')}</h3><p class="copy">${tr('untilNextSalary')}</p></div><span class="cycle-pill"><bdi dir="ltr">${cycle.start}</bdi></span></div></div>${backupDue()?`<div class="card backup-card"><p class="copy">${tr('backupReminder')}</p><button class="btn" onclick="exportData()">${tr('backupNow')}</button></div>`:''}<div class="reports-stack"><div class="section"><h3>${tr('cycleReports')}</h3><span class="hint">${state.cycleReports.length}</span></div>${state.cycleReports.length?state.cycleReports.map(report=>reportCard(report)).join(''):`<div class="card empty">${tr('noReports')}</div>`}</div><div class="card"><div class="section"><h3>${tr('privacy')}</h3><span class="hint">${tr('local')}</span></div><p class="copy">${tr('privacyText')}</p><div class="field" style="margin-top:12px"><label for="settingsDisplayName">${tr('displayName')}</label><input id="settingsDisplayName" maxlength="60" placeholder="${tr('displayNamePlaceholder')}" value="${escapeHtml(state.settings.displayName||'')}" onchange="saveDisplayName(this.value)"></div><div class="field"><label>${tr('currency')}</label><select ${locked?'disabled aria-disabled="true"':''} onchange="setCurrency(this.value)">${currencies.map(c=>`<option value="${c}" ${state.settings.currency===c?'selected':''}>${currencyOption(c)}</option>`).join('')}</select>${locked?`<span class="hint">${tr('currencyLocked')}</span>`:''}</div><div class="btns"><button class="btn sec" onclick="exportData()">${tr('export')}</button><button class="btn sec" onclick="document.getElementById('importFile').click()">${tr('import')}</button><button class="btn ghost full" onclick="restartWizard()">${tr('editPlan')}</button><button class="btn danger full" onclick="resetAll()">${tr('reset')}</button></div><input id="importFile" type="file" accept="application/json" class="hidden" onchange="importData(event)"></div>`}
+function renderSettings(){const cycle=currentCycle(),locked=hasFinancialData();$('settings').innerHTML=`<div class="card"><div class="section"><div><h3>${tr('openCycle')}</h3><p class="copy">${tr('untilNextSalary')}</p></div><span class="cycle-pill"><bdi dir="ltr">${cycle.start}</bdi></span></div></div>${backupDue()?`<div class="card backup-card"><p class="copy">${tr('backupReminder')}</p><button class="btn" onclick="exportData()">${tr('backupNow')}</button></div>`:''}<div class="reports-stack"><div class="section"><h3>${tr('cycleReports')}</h3><span class="hint">${state.cycleReports.length}</span></div>${state.cycleReports.length?state.cycleReports.map(report=>reportCard(report)).join(''):`<div class="card empty">${tr('noReports')}</div>`}</div><div class="card scale-theme-field"><div class="section"><div><h3>${tr('visualIdentity')}</h3><p class="copy">${tr('scaleThemeDesc')}</p></div><span class="section-icon">⚖</span></div><label>${tr('scaleTheme')}</label>${scaleThemeOptions()}</div><div class="card"><div class="section"><h3>${tr('privacy')}</h3><span class="hint">${tr('local')}</span></div><p class="copy">${tr('privacyText')}</p><div class="field" style="margin-top:12px"><label for="settingsDisplayName">${tr('displayName')}</label><input id="settingsDisplayName" maxlength="60" placeholder="${tr('displayNamePlaceholder')}" value="${escapeHtml(state.settings.displayName||'')}" onchange="saveDisplayName(this.value)"></div><div class="field"><label>${tr('currency')}</label><select ${locked?'disabled aria-disabled="true"':''} onchange="setCurrency(this.value)">${currencies.map(c=>`<option value="${c}" ${state.settings.currency===c?'selected':''}>${currencyOption(c)}</option>`).join('')}</select>${locked?`<span class="hint">${tr('currencyLocked')}</span>`:''}</div><div class="btns"><button class="btn sec" onclick="exportData()">${tr('export')}</button><button class="btn sec" onclick="document.getElementById('importFile').click()">${tr('import')}</button><button class="btn ghost full" onclick="restartWizard()">${tr('editPlan')}</button><button class="btn danger full" onclick="resetAll()">${tr('reset')}</button></div><input id="importFile" type="file" accept="application/json" class="hidden" onchange="importData(event)"></div>`}
 function exportData(){state.settings.lastBackupAt=localDate();if(!save())return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='mezan-backup.json';a.click();URL.revokeObjectURL(a.href);if(activeTab==='settings')renderSettings()}
 function arrayCount(value){return Array.isArray(value)?value.length:0}
 function importSkippedCount(raw,imported){return ['expenses','recurringPayments','salaryReceipts','cycleReports'].reduce((sum,key)=>sum+Math.max(0,arrayCount(raw[key])-arrayCount(imported[key])),0)}
