@@ -1,8 +1,17 @@
-.splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .35s ease}
+.splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .4s ease}
 .splash.hide{opacity:0;pointer-events:none}
-.splash-mark{border-radius:24px;filter:drop-shadow(0 16px 30px rgba(0,0,0,.36));animation:mezanPulse 1.15s cubic-bezier(.22,.8,.28,1) both}
-@keyframes mezanPulse{
-  0%{opacity:0;transform:translateY(8px) scale(.9)}
-  45%{opacity:1;transform:translateY(0) scale(1.04)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
+.splash svg{filter:drop-shadow(0 12px 24px rgba(0,0,0,.35))}
+.splash-post rect,.splash-post path{fill:var(--soft)}
+.splash-beam rect,.splash-beam circle{fill:var(--accent2)}
+.splash-pan-left line,.splash-pan-right line{stroke:var(--accent3);stroke-width:2;stroke-linecap:round}
+.splash-pan-left path,.splash-pan-right path{fill:var(--accent);opacity:.85}
+.splash-beam{transform-origin:100px 39px;animation:mezanTilt 1.8s cubic-bezier(.33,.04,.2,1) 1}
+@keyframes mezanTilt{
+  0%{transform:rotate(0deg)}
+  14%{transform:rotate(-11deg)}
+  34%{transform:rotate(9deg)}
+  52%{transform:rotate(-5deg)}
+  70%{transform:rotate(3deg)}
+  86%{transform:rotate(-1deg)}
+  100%{transform:rotate(0deg)}
 }
