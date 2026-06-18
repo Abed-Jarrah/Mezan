@@ -1,4 +1,4 @@
-const CACHE = 'mezan-v11-20260618-sec1';
+const CACHE = 'mezan-v12-20260619-splash1';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './css/layout.css',
   './css/components.css',
   './css/responsive.css',
+  './css/splash.css',
   './js/storage.js',
   './js/calculations.js',
   './js/translations.js',

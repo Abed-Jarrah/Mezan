@@ -102,7 +102,8 @@ const MezanStorage = (() => {
         lang: LANGUAGES.has(settings.lang) ? settings.lang : 'ar',
         currency: CURRENCIES.has(settings.currency) ? settings.currency : 'QAR',
         lastBackupAt: date(settings.lastBackupAt),
-        chatUserId: text(settings.chatUserId, 64) || generateChatUserId()
+        chatUserId: text(settings.chatUserId, 64) || generateChatUserId(),
+        displayName: text(settings.displayName, 60)
       }
     };
   }

@@ -17,6 +17,9 @@ test('browser unit suite passes', async ({ page }) => {
 });
 
 test('wizard creates a valid plan using keyboard navigation', async ({ page }) => {
+  await expect(page.getByText('كيف نناديك؟')).toBeVisible();
+  await page.locator('#displayName').fill('أحمد');
+  await page.getByRole('button', { name: 'التالي' }).click();
   await page.locator('#salary').fill('8000');
   await page.locator('#salary').press('Enter');
   await page.getByRole('button', { name: 'التالي' }).click();
@@ -26,6 +29,7 @@ test('wizard creates a valid plan using keyboard navigation', async ({ page }) =
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'اعتماد الخطة' }).click();
   await expect(page.getByRole('heading', { name: 'هذه دورتك المالية، وهذه فرصتك' })).toBeVisible();
+  await expect(page.getByText('أهلاً أحمد')).toBeVisible();
   await expect(page.getByText('ملخص اليوم')).toBeVisible();
   await expect(page.locator('.balance-orb-card')).toBeVisible();
 });
@@ -58,8 +62,9 @@ test('expense flow updates the interactive balance circle', async ({ page }) => 
 
 test('language switches the interface and currency symbol', async ({ page }) => {
   await page.getByRole('button', { name: 'EN' }).click();
-  await expect(page.getByText('Let’s start with your income')).toBeVisible();
+  await expect(page.getByText('What should we call you?')).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+  await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.locator('#wizardCurrency')).toContainText('QAR');
 });
 
