@@ -83,12 +83,9 @@ function cycleSnapshot(){
   return cycleCache;
 }
 function cycleExpenses(){return cycleSnapshot().expenses}
-function dailyExpenses(){return cycleSnapshot().daily}
 function totalCycleSpent(){return cycleSnapshot().totalSpent}
-function currentBalance(){return cycleSnapshot().balance}
 function cycleStartAvailable(){return cycleSnapshot().balance.startAvailable}
 function salaryRemaining(){return cycleSnapshot().balance.remaining}
-function variableSpent(){return cycleSnapshot().dailySpent}
 function kindTotal(kind){return cycleSnapshot().byKind[kind]||0}
 function categorySpent(category){return cycleSnapshot().byCategory[category]||0}
 function balanceVisual(remaining,available){
