@@ -13,6 +13,7 @@
   <h1>اختبارات ميزان</h1>
   <div id="results"></div>
   <script src="js/storage.js?v=20260618-sec1"></script>
+  <script src="js/sync.js"></script>
   <script src="js/calculations.js?v=20260618-sec1"></script>
   <script src="js/translations.js?v=20260618-sec1"></script>
   <script src="js/currency.js?v=20260618-sec1"></script>
@@ -34,6 +35,15 @@
     }
     function equal(actual, expected) {
       if (actual !== expected) throw new Error(`${actual} !== ${expected}`);
+    }
+    function throws(run, expectedMessage) {
+      try {
+        run();
+      } catch (error) {
+        if (expectedMessage) equal(error.message, expectedMessage);
+        return;
+      }
+      throw new Error('Expected function to throw');
     }
 
     test('تعقيم HTML', () => equal(MezanUI.escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;'));
@@ -377,6 +387,45 @@
       equal(summary.status, 'over');
     });
     test('التاريخ المحلي', () => equal(MezanUI.localDate(new Date(2026, 5, 4)), '2026-06-04'));
+    test('Sync checksum is deterministic across key order', () => {
+      equal(MezanSync.checksum({ b: 2, nested: { y: true, x: 1 }, a: 1 }), MezanSync.checksum({ a: 1, nested: { x: 1, y: true }, b: 2 }));
+      if (MezanSync.checksum({ a: 1 }) === MezanSync.checksum({ a: 2 })) throw new Error('Different payloads must have different checksums');
+    });
+    test('Sync wrap and unwrap preserve payload and metadata', () => {
+      const payload = { profile: { salary: 9000 }, expenses: [{ amount: 20 }] };
+      const envelope = MezanSync.wrap(payload, { deviceId: 'device-a', rev: 3 });
+      const result = MezanSync.unwrap(envelope);
+      equal(JSON.stringify(result.payload), JSON.stringify(payload));
+      equal(result.meta.schemaVersion, MezanSync.SCHEMA_VERSION);
+      equal(result.meta.rev, 3);
+      equal(result.meta.deviceId, 'device-a');
+      equal(typeof result.meta.updatedAt, 'string');
+    });
+    test('Sync wrap validates revision and device ID', () => {
+      throws(() => MezanSync.wrap({}, { deviceId: 'device-a', rev: -1 }), 'Invalid sync wrap options');
+      throws(() => MezanSync.wrap({}, { deviceId: '', rev: 0 }), 'Invalid sync wrap options');
+    });
+    test('Sync unwrap rejects tampered payloads', () => {
+      const envelope = MezanSync.wrap({ amount: 20 }, { deviceId: 'device-a', rev: 0 });
+      envelope.payload.amount = 25;
+      throws(() => MezanSync.unwrap(envelope), 'checksum_mismatch');
+    });
+    test('Sync unwrap rejects malformed envelopes', () => {
+      throws(() => MezanSync.unwrap({}), 'Invalid sync envelope');
+    });
+    test('Sync revision increments monotonically', () => equal(MezanSync.nextRev(4), 5));
+    test('Sync migration keeps the current schema envelope unchanged', () => {
+      const envelope = MezanSync.wrap({ amount: 20 }, { deviceId: 'device-a', rev: 0 });
+      equal(MezanSync.migrate(envelope), envelope);
+    });
+    test('Sync conflict detection handles core and first-sync states', () => {
+      equal(MezanSync.detectConflict({ baseRevisionId: 'r1', hasLocalEdits: true }, { revisionId: 'r1' }), 'fresh');
+      equal(MezanSync.detectConflict({ baseRevisionId: 'r1', hasLocalEdits: false }, { revisionId: 'r2' }), 'remote_ahead');
+      equal(MezanSync.detectConflict({ baseRevisionId: 'r1', hasLocalEdits: true }, { revisionId: 'r2' }), 'conflict');
+      equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: false }, { revisionId: null }), 'fresh');
+      equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: false }, { revisionId: 'r1' }), 'remote_ahead');
+      equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: true }, { revisionId: 'r1' }), 'conflict');
+    });
   </script>
 </body>
 </html>
