@@ -20,7 +20,11 @@ const MezanDrive = (() => {
     const response = await fetch(url, Object.assign({}, options, {
       headers: Object.assign({}, options?.headers, { Authorization: `Bearer ${token}` })
     }));
-    if (!response.ok) throw new Error(`Google Drive request failed (${response.status})`);
+    if (!response.ok) {
+      let detail = '';
+      try { detail = (await response.text()).slice(0, 200); } catch {}
+      throw new Error(`Drive ${response.status}: ${detail}`);
+    }
     return response;
   }
 

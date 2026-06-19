@@ -1,5 +1,5 @@
-const VERSION = '20260620-drive1';
-const CACHE = `mezan-v24-${VERSION}`;
+const VERSION = '20260620-drive3';
+const CACHE = `mezan-v26-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const ASSETS = [
   `./js/currency.js?v=${VERSION}`,
   `./js/ui.js?v=${VERSION}`,
   `./js/auth.js?v=${VERSION}`,
+  `./js/sync.js?v=${VERSION}`,
   `./js/drive.js?v=${VERSION}`,
   `./js/app.js?v=${VERSION}`,
   './assets/fonts/plex-arabic-400.ttf',
