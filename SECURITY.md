@@ -22,4 +22,4 @@ Use a private local copy such as `worker/wrangler.local.toml` or edit `worker/wr
 
 - Worker requests are limited to `https://abed-jarrah.github.io`.
 - Requests without an allowed `Origin` are rejected.
-- Rate limits are applied by anonymous user id and Cloudflare IP.
+- The Worker requires a verified Google ID token and applies user rate limits by the verified Google `sub` claim, plus a secondary Cloudflare IP limit.

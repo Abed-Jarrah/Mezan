@@ -1,6 +1,8 @@
 # Mezan Chat Worker
 
-Backend proxy for the Mezan AI assistant. It uses Cloudflare Workers AI and stores only a per-user anonymous rate-limit counter in Cloudflare KV.
+Backend proxy for the Mezan AI assistant. It uses Cloudflare Workers AI and stores a per-user rate-limit counter in Cloudflare KV, keyed by the server-verified Google account `sub` claim.
+
+Every chat request must include a Google ID token in `Authorization: Bearer <token>` (preferred) or `idToken` in the JSON payload. Set `GOOGLE_CLIENT_ID` in `wrangler.toml` to the matching Google OAuth web client ID before deploying.
 
 ## Deploy
 

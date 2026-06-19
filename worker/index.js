@@ -1,3 +1,5 @@
+import { verifyGoogleIdToken } from './verify.mjs';
+
 const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
 const MAX_QUESTIONS = 5;
 const MAX_IP_QUESTIONS = 60;
@@ -22,7 +24,7 @@ function corsHeaders(request) {
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
     'Vary': 'Origin'
   };
 }
@@ -74,20 +76,28 @@ export default {
       return jsonResponse(request, { error: 'invalid_json' }, 400);
     }
 
-    const userId = typeof payload.userId === 'string' ? payload.userId.slice(0, 64) : '';
     const question = typeof payload.question === 'string' ? payload.question.trim().slice(0, MAX_QUESTION_LENGTH) : '';
     const financialContext = typeof payload.financialContext === 'string' ? payload.financialContext.slice(0, MAX_CONTEXT_LENGTH) : '';
     const lang = payload.lang === 'en' ? 'en' : 'ar';
 
-    if (!env.AI || !env.RATE_LIMIT) {
+    if (!env.AI || !env.RATE_LIMIT || !env.GOOGLE_CLIENT_ID) {
       return jsonResponse(request, { error: 'worker_not_configured' }, 500);
     }
-    if (!userId || !question) {
+    if (!question) {
       return jsonResponse(request, { error: 'missing_fields' }, 400);
     }
 
+    const authorization = request.headers.get('Authorization');
+    const idToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1] || payload.idToken;
+    let identity;
+    try {
+      identity = await verifyGoogleIdToken(idToken, env);
+    } catch {
+      return jsonResponse(request, { error: 'unauthorized' }, 401);
+    }
+
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const userLimit = await readRateLimit(env.RATE_LIMIT, `user:${userId}`, MAX_QUESTIONS);
+    const userLimit = await readRateLimit(env.RATE_LIMIT, `user:${identity.sub}`, MAX_QUESTIONS);
     const ipLimit = await readRateLimit(env.RATE_LIMIT, `ip:${ip}`, MAX_IP_QUESTIONS);
     if (!userLimit.allowed || !ipLimit.allowed) {
       return jsonResponse(request, { message: LIMIT_MESSAGE[lang] }, 429);
@@ -101,7 +111,7 @@ export default {
         ]
       });
       await Promise.all([
-        incrementRateLimit(env.RATE_LIMIT, `user:${userId}`, userLimit.record),
+        incrementRateLimit(env.RATE_LIMIT, `user:${identity.sub}`, userLimit.record),
         incrementRateLimit(env.RATE_LIMIT, `ip:${ip}`, ipLimit.record)
       ]);
       return jsonResponse(request, { answer: result.response || '' });
