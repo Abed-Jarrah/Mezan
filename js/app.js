@@ -8,6 +8,8 @@ let idSequence=(()=>{if(globalThis.crypto?.getRandomValues){const values=new Uin
 let cycleCache=null;
 let activeTab='dashboard';
 const CHAT_API_URL='https://mezan-chat.mezan-finance.workers.dev/chat';
+const MAX_CHAT_HISTORY_MESSAGES=6;
+const MAX_FINANCIAL_CONTEXT_LENGTH=1500;
 const SALARY_HISTORY_YEARS=3;
 const MAX_RECURRING_SYNC_MONTHS=36;
 const BLOCKED_MERCHANT_KEYS=new Set(['__proto__','constructor','prototype']);
@@ -304,22 +306,11 @@ function saveCategoryBudgets(){['food','transport','bills','fun','other'].forEac
 function addRecurringPayment(){const name=$('recurringName').value.trim(),amount=num($('recurringAmount').value),day=Math.min(31,Math.max(1,num($('recurringDay').value)||1)),category=$('recurringCategory').value;if(!name||!amount){toast(tr('toastAmount'));return}state.recurringPayments.push({id:newId(),name,amount,day,category,active:true});if(!save())return;syncRecurringPayments();showTab('budget');toast(tr('recurringSaved'),'success')}
 function deleteRecurring(id){if(!confirm(tr('deleteRecurringConfirm')))return;state.recurringPayments=state.recurringPayments.filter(payment=>payment.id!==id);state.expenses.forEach(expense=>{if(expense.recurringId===id)expense.recurringId=null});if(!save())return;showTab('budget')}
 function buildFinancialContext(){
-  const cycle=currentCycle(),p=state.profile||{},recent=cycleExpenses().slice(0,12).map(expense=>`${expense.date}: ${expense.merchant||categoryLabel(expense.category)} ${money(expense.amount)} (${expenseKindLabel(expense)})`).join('\n');
-  const budgets=['food','transport','bills','fun','other'].map(category=>`${categoryLabel(category)}: spent ${money(categorySpent(category))}, limit ${state.categoryBudgets[category]?money(state.categoryBudgets[category]):tr('noLimit')}`).join('\n');
-  return [
-    `Language: ${state.settings.lang}`,
-    `Currency: ${state.settings.currency}`,
-    `Current cycle: ${cycle.start} to ${cycle.end||localDate()}`,
-    `Cycle income: ${money(cycleIncome())}`,
-    `Fixed costs: ${money(fixedCosts())}`,
-    `Planned saving: ${money(plannedSaving())}`,
-    `Cycle start available: ${money(cycleStartAvailable())}`,
-    `Spent this cycle: ${money(totalCycleSpent())}`,
-    `Remaining from salary: ${money(salaryRemaining())}`,
-    `Savings goal: ${p.goalName||tr('generalSave')} (${money(p.goalAmount||0)})`,
-    `Budgets:\n${budgets}`,
-    `Recent cycle expenses:\n${recent||tr('noExpenses')}`
-  ].join('\n');
+  const cycle=currentCycle(),p=state.profile||{},isArabic=state.settings.lang==='ar';
+  const topCategories=['food','transport','bills','fun','other'].map(category=>({category,spent:categorySpent(category)})).filter(item=>item.spent>0).sort((a,b)=>b.spent-a.spent).slice(0,3).map(item=>`${categoryLabel(item.category)} ${money(item.spent)}`).join(', ')||tr('noExpenses');
+  const recent=cycleExpenses().slice(0,8).map(expense=>`${expense.date}: ${expense.merchant||categoryLabel(expense.category)} ${money(expense.amount)}`).join('; ')||tr('noExpenses');
+  const labels=isArabic?{language:'\u0627\u0644\u0644\u063a\u0629',currency:'\u0627\u0644\u0639\u0645\u0644\u0629',cycle:'\u062f\u0648\u0631\u0629 \u0627\u0644\u0631\u0627\u062a\u0628',income:'\u0627\u0644\u062f\u062e\u0644 \u0627\u0644\u0634\u0647\u0631\u064a',fixed:'\u0627\u0644\u0645\u0635\u0627\u0631\u064a\u0641 \u0627\u0644\u062b\u0627\u0628\u062a\u0629',savings:'\u0647\u062f\u0641 \u0627\u0644\u0627\u062f\u062e\u0627\u0631',available:'\u0627\u0644\u0645\u062a\u0628\u0642\u064a \u0644\u0644\u0625\u0646\u0641\u0627\u0642',spent:'\u0625\u062c\u0645\u0627\u0644\u064a \u0625\u0646\u0641\u0627\u0642 \u0627\u0644\u062f\u0648\u0631\u0629',top:'\u0623\u0639\u0644\u0649 \u0627\u0644\u0641\u0626\u0627\u062a',recent:'\u0622\u062e\u0631 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a'}:{language:'Language',currency:'Currency',cycle:'Pay cycle',income:'Monthly income',fixed:'Fixed costs',savings:'Savings target',available:'Remaining to spend',spent:'Spent this cycle',top:'Top categories',recent:'Recent expenses'};
+  return [`${labels.language}: ${state.settings.lang}`,`${labels.currency}: ${state.settings.currency}`,`${labels.cycle}: ${cycle.start} to ${cycle.end||localDate()}`,`${labels.income}: ${money(cycleIncome())}`,`${labels.fixed}: ${money(fixedCosts())}`,`${labels.savings}: ${p.goalName||tr('generalSave')} (${money(p.goalAmount||0)}); ${money(plannedSaving())} ${tr('monthly')}`,`${labels.available}: ${money(salaryRemaining())}`,`${labels.spent}: ${money(totalCycleSpent())}`,`${labels.top}: ${topCategories}`,`${labels.recent}: ${recent}`].join('\n').slice(0,MAX_FINANCIAL_CONTEXT_LENGTH);
 }
 function chatMessageRow(message){return `<div class="chat-msg ${message.role}"><b>${message.role==='user'?tr('chat'):tr('chatTitle')}</b><p>${escapeHtml(message.text)}</p></div>`}
 function chatSamples(){return state.settings.lang==='ar'?['كم باقي من راتبي؟','كم صرفت على الطعام هذا الشهر؟','هل أنا داخل حدود ميزانيتي؟']:['How much salary is left?','How much did I spend on food this month?','Am I within my budget?']}
@@ -339,10 +330,11 @@ function renderChat(){
 async function sendChatMessage(){
   const input=$('chatQuestion'),question=input?.value.trim(),idToken=globalThis.MezanAuth?.getIdToken();
   if(!question||!idToken)return;
+  const history=chatMessages.slice(-MAX_CHAT_HISTORY_MESSAGES).map(message=>({role:message.role==='user'?'user':'assistant',text:message.text}));
   chatMessages.push({role:'user',text:question});
   chatLoading=true;renderChat();
   try{
-    const response=await fetch(CHAT_API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${idToken}`},body:JSON.stringify({lang:state.settings.lang,question,financialContext:buildFinancialContext()})});
+    const response=await fetch(CHAT_API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${idToken}`},body:JSON.stringify({lang:state.settings.lang,question,history,financialContext:buildFinancialContext()})});
     if(response.status===401){chatAuthMessage=tr('chatSessionExpired');MezanAuth.signOut();return}
     const data=await response.json().catch(()=>({}));
     chatMessages.push({role:'bot',text:data.answer||data.message||tr(response.status===429?'chatLimitReached':'chatError')});

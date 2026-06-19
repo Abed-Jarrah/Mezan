@@ -1,5 +1,5 @@
-const VERSION = '20260620-auth3';
-const CACHE = `mezan-v22-${VERSION}`;
+const VERSION = '20260620-ai1';
+const CACHE = `mezan-v23-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
