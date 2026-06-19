@@ -1,17 +1,31 @@
 .splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg);transition:opacity .4s ease}
 .splash.hide{opacity:0;pointer-events:none}
 .splash svg{filter:drop-shadow(0 12px 24px rgba(0,0,0,.35))}
-.splash-post rect,.splash-post path{fill:var(--soft)}
-.splash-beam rect,.splash-beam circle{fill:var(--accent2)}
-.splash-pan-left line,.splash-pan-right line{stroke:var(--accent3);stroke-width:2;stroke-linecap:round}
-.splash-pan-left path,.splash-pan-right path{fill:var(--accent);opacity:.85}
-.splash-beam{transform-origin:100px 39px;animation:mezanTilt 1.8s cubic-bezier(.33,.04,.2,1) 1}
-@keyframes mezanTilt{
-  0%{transform:rotate(0deg)}
-  14%{transform:rotate(-11deg)}
-  34%{transform:rotate(9deg)}
-  52%{transform:rotate(-5deg)}
-  70%{transform:rotate(3deg)}
-  86%{transform:rotate(-1deg)}
-  100%{transform:rotate(0deg)}
+.splash-track{fill:none;stroke:var(--line2);stroke-width:6;stroke-linecap:round}
+.splash-arc{
+  fill:none;
+  stroke:var(--accent);
+  stroke-width:6;
+  stroke-linecap:round;
+  stroke-dasharray:270;
+  stroke-dashoffset:0;
+  animation:mezanArcDraw .85s cubic-bezier(.2,.8,.2,1) 1;
+}
+.splash-dot{
+  fill:var(--bg);
+  stroke:var(--accent);
+  stroke-width:5;
+  transform-box:fill-box;
+  transform-origin:50% 50%;
+  opacity:1;
+  transform:scale(1);
+  animation:mezanDotSettle .35s cubic-bezier(.2,.8,.2,1) .65s 1 backwards;
+}
+@keyframes mezanArcDraw{
+  0%{stroke-dashoffset:270}
+  100%{stroke-dashoffset:0}
+}
+@keyframes mezanDotSettle{
+  0%{opacity:0;transform:scale(.4)}
+  100%{opacity:1;transform:scale(1)}
 }

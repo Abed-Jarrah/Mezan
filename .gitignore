@@ -8,3 +8,6 @@ outputs/
 worker/.dev.vars
 worker/.dev.vars.*
 worker/wrangler.local.toml
+.gstack/
+.claude/
+.agents/

@@ -1,4 +1,4 @@
-const CACHE = 'mezan-v15-20260620-scale3';
+const CACHE = 'mezan-v18-20260621-finance2';
 const ASSETS = [
   './',
   './index.html',
@@ -10,18 +10,16 @@ const ASSETS = [
   './css/components.css',
   './css/responsive.css',
   './css/splash.css',
-  './css/scale.css',
   './js/storage.js',
   './js/calculations.js',
   './js/translations.js',
   './js/currency.js',
   './js/ui.js',
   './js/app.js',
-  './assets/fonts/cairo-400.ttf',
-  './assets/fonts/cairo-500.ttf',
-  './assets/fonts/cairo-600.ttf',
-  './assets/fonts/cairo-700.ttf',
-  './assets/fonts/cairo-800.ttf'
+  './assets/fonts/plex-arabic-400.ttf',
+  './assets/fonts/plex-arabic-500.ttf',
+  './assets/fonts/plex-arabic-600.ttf',
+  './assets/fonts/plex-arabic-700.ttf'
 ];
 
 self.addEventListener('install', event => {
