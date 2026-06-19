@@ -1,6 +1,9 @@
 // Keep this below Cloudflare's 10,000-neuron free-tier cap to leave operational headroom.
 export const DAILY_NEURON_BUDGET = 9_000;
-export const MAX_QUESTIONS = 5;
+// Per-user fairness ceiling (agreed clamp). The global DAILY_NEURON_BUDGET stays the
+// authoritative hard cap; this just stops one user draining the shared pool. Dynamic
+// per-user = budget/activeUsers division is a later step; with few users it clamps to this.
+export const PER_USER_DAILY_QUESTIONS = 30;
 export const MAX_IP_QUESTIONS = 60;
 export const MAX_QUESTION_LENGTH = 300;
 export const MAX_CONTEXT_LENGTH = 1_500;
@@ -23,5 +26,5 @@ export function worstCaseNeurons(maxInputTokens = MAX_INPUT_TOKENS, maxOutputTok
 }
 
 export const WORST_CASE_NEURONS = worstCaseNeurons();
-// Preserves the prior five-request daily allowance while the global budget remains authoritative.
-export const PER_USER_DAILY_NEURON_BUDGET = MAX_QUESTIONS * WORST_CASE_NEURONS;
+// Per-user neuron allowance derived from the question ceiling; global budget stays authoritative.
+export const PER_USER_DAILY_NEURON_BUDGET = PER_USER_DAILY_QUESTIONS * WORST_CASE_NEURONS;

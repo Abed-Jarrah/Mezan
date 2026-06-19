@@ -18,8 +18,8 @@ const SYSTEM_PROMPT = {
 };
 
 const LIMIT_MESSAGE = {
-  ar: 'وصلت للحد الأقصى من الأسئلة المجانية لهذا اليوم: 5 أسئلة كل 24 ساعة. يمكنك المحاولة لاحقاً.',
-  en: 'You have reached the free daily limit: 5 questions every 24 hours. Please try again later.'
+  ar: 'وصلت للحد الأقصى من الأسئلة المجانية لهذا اليوم. جرّب مرة أخرى غداً.',
+  en: 'You have reached the free daily question limit. Please try again tomorrow.'
 };
 
 function corsHeaders(request) {
