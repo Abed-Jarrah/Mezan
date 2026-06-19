@@ -13,6 +13,7 @@ const MAX_RECURRING_SYNC_MONTHS=36;
 const BLOCKED_MERCHANT_KEYS=new Set(['__proto__','constructor','prototype']);
 let chatMessages=[];
 let chatLoading=false;
+let chatAuthMessage='';
 let editingExpenseId=null;
 let wizard={step:0,isEditing:false,currency:state.settings.currency||'QAR',displayName:state.settings.displayName||'',salary:'',salaryDate:localDate(),extraIncome:'',rentPaid:'no',rent:'',internet:'',electricity:'',phone:'',fuel:'',fixed:'',loans:'',saveTarget:'',goalType:'general',goalName:'',goalAmount:'',goalMonths:''};
 function newId(){idSequence=(idSequence+1)%4096;return Date.now()*4096+idSequence}
@@ -38,7 +39,8 @@ Object.assign(T.en,{importOk:'Backup imported',importSkipped:n=>`${fmt(n)} inval
 Object.assign(T.ar,{todaySummary:'ملخص اليوم',todayAvailable:'المتاح المقترح اليوم',spentToday:'صرفت اليوم',daysLeft:'أيام متبقية',todayGood:'إنفاقك اليوم ضمن الحد المقترح.',todayWatch:'اقتربت من الحد المقترح لليوم.',todayOver:'تجاوزت الحد المقترح لليوم.'});
 Object.assign(T.en,{todaySummary:'Today summary',todayAvailable:'Suggested available today',spentToday:'Spent today',daysLeft:'days left',todayGood:'Your spending today is within the suggested limit.',todayWatch:'You are nearing the suggested limit for today.',todayOver:'You exceeded the suggested limit for today.'});
 Object.assign(T.ar,{chat:'مساعد',chatTitle:'مساعد ميزان',chatDesc:'اسأل عن دخلك، مصاريفك، ميزانياتك، أو هدف التوفير فقط.',chatPlaceholder:'مثلاً: كم باقي من راتبي؟',chatSend:'إرسال',chatPrivacyNote:'عند الإرسال، يذهب سؤالك وملخص مالي مختصر إلى مزود الذكاء الاصطناعي لحظة السؤال فقط. لا نخزن بياناتك المالية على السيرفر.',chatEmpty:'جرّب أحد الأسئلة التالية، أو اكتب سؤالك الخاص عن دورتك الحالية.',chatLimitReached:'وصلت للحد اليومي من الأسئلة المجانية.',chatError:'تعذر تشغيل المساعد حالياً. حاول لاحقاً.',chatThinking:'يفكر...',chatNotConfigured:'المساعد الذكي جاهز في الواجهة، لكنه يحتاج ربط Cloudflare Worker قبل الاستخدام.'});
-Object.assign(T.en,{chat:'Assistant',chatTitle:'Mezan Assistant',chatDesc:'Ask only about your income, expenses, budgets, or savings goal.',chatPlaceholder:'Example: how much salary is left?',chatSend:'Send',chatPrivacyNote:'When you send, your question and a short financial summary go to the AI provider only for that request. We do not store your financial data on the server.',chatEmpty:'Try one of the questions below, or type your own about your current cycle.',chatLimitReached:'You reached the free daily question limit.',chatError:'The assistant is unavailable right now. Try again later.',chatThinking:'Thinking...',chatNotConfigured:'The assistant UI is ready, but it needs a Cloudflare Worker URL before use.'});
+Object.assign(T.en,{chat:'Assistant',chatTitle:'Mezan Assistant',chatDesc:'Ask only about your income, expenses, budgets, or savings goal.',chatPlaceholder:'Example: how much salary is left?',chatSend:'Send',chatPrivacyNote:'When you send, your question and a short financial summary go to the AI provider only for that request. We do not store your financial data on the server.',chatEmpty:'Try one of the questions below, or type your own about your current cycle.',chatLimitReached:'You reached the free daily question limit.',chatError:'The assistant is unavailable right now. Try again later.',chatThinking:'Thinking...',chatNotConfigured:'The assistant UI is ready, but it needs a Cloudflare Worker URL before use.',chatSignInPrompt:'Sign in with Google to use the assistant.',chatSignInButton:'Sign in with Google',chatSessionExpired:'Your session expired. Please sign in again.',signedInAs:'Signed in as'});
+Object.assign(T.ar,{chatSignInPrompt:'سجل الدخول باستخدام Google لاستخدام المساعد.',chatSignInButton:'تسجيل الدخول باستخدام Google',chatSessionExpired:'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.',signedInAs:'تم تسجيل الدخول باسم'});
 Object.assign(T.ar,{local:'محلي افتراضياً',privacyText:'تبقى بياناتك محفوظة على جهازك. عند تفعيل المساعد واستخدامه فقط، يُرسل سؤالك وملخص مالي مختصر لمعالجة الرد دون تخزين بياناتك المالية على السيرفر.'});
 Object.assign(T.en,{local:'Local by default',privacyText:'Your data stays on this device. Only when the assistant is enabled and used, your question and a short financial summary are sent to generate the reply without storing your financial data on the server.'});
 Object.assign(T.ar,{nameTitle:'كيف نناديك؟',nameDesc:'اختر اسماً يظهر لك في ميزان. يمكنك تغييره لاحقاً من الإعدادات.',displayName:'اسمك',displayNamePlaceholder:'مثلاً: أحمد',displayNameHint:'هذه الخطوة اختيارية، يمكنك تركها فارغة.',greeting:n=>`أهلاً ${n}`,displayNameSaved:'تم حفظ اسمك'});
@@ -172,7 +174,7 @@ function syncRecurringPayments(){
   });
   if(changed)save();
 }
-function init(){applyLocale(); if(!state.profile){$('onboarding').classList.remove('hidden');$('appArea').classList.add('hidden');$('tabs').classList.add('hidden');renderWizard()}else{syncRecurringPayments();$('onboarding').classList.add('hidden');$('appArea').classList.remove('hidden');$('tabs').classList.remove('hidden');showTab(activeTab)}}
+function init(){globalThis.MezanAuth?.init();applyLocale(); if(!state.profile){$('onboarding').classList.remove('hidden');$('appArea').classList.add('hidden');$('tabs').classList.add('hidden');renderWizard()}else{syncRecurringPayments();$('onboarding').classList.add('hidden');$('appArea').classList.remove('hidden');$('tabs').classList.remove('hidden');showTab(activeTab)}}
 function dots(){return `<div class="steps">${Array.from({length:7},(_,i)=>`<div class="dot ${i<=wizard.step?'on':''}"></div>`).join('')}</div>`}
 function wrap(title,desc,body){const step=wizard.step+1;const stepText=state.settings.lang==='ar'?`الخطوة ${step} من 7`:`Step ${step} of 7`;return `<div class="card wizard-card"><div class="wizard-head"><div class="growth-icon" aria-hidden="true">↗</div><div><div class="eyebrow">${stepText}</div><div class="title">${title}</div><div class="desc">${desc}</div></div></div>${dots()}<div class="form">${body}</div></div>`}
 function nav(back=true){return `<div class="btns">${back?`<button class="btn sec" onclick="prevStep()">${tr('back')}</button>`:wizard.isEditing?`<button class="btn sec" onclick="cancelEdit()">${tr('settings')}</button>`:''}<button class="btn ${back||wizard.isEditing?'':'full'}" onclick="nextStep()">${tr('next')}</button></div>`}
@@ -327,17 +329,21 @@ function chatMessagesHtml(){
   const chips=chatSamples().map(q=>`<button class="chat-sample" onclick="askSample('${q}')">${escapeHtml(q)}</button>`).join('');
   return `<div class="chat-empty"><p>${tr('chatEmpty')}</p><div class="chat-samples">${chips}</div></div>`;
 }
+async function startChatSignIn(){try{await MezanAuth.signIn()}catch{renderChat()}}
 function renderChat(){
-  const configured=!!CHAT_API_URL&&/\/chat$/.test(CHAT_API_URL);
-  $('chat').innerHTML=`<div class="card chat-card"><div class="section"><div><h3>${tr('chatTitle')}</h3><p class="copy">${tr('chatDesc')}</p></div><span class="section-icon">✦</span></div><p class="chat-privacy">${tr('chatPrivacyNote')}</p>${configured?'':`<div class="notice">${tr('chatNotConfigured')}</div>`}<div class="chat-thread" id="chatThread" aria-live="polite">${chatMessagesHtml()}${chatLoading?`<div class="chat-msg bot"><b>${tr('chatTitle')}</b><p>${tr('chatThinking')}</p></div>`:''}</div><div class="chat-input-row"><input id="chatQuestion" maxlength="300" placeholder="${tr('chatPlaceholder')}" ${chatLoading||!configured?'disabled':''}><button class="btn" onclick="sendChatMessage()" ${chatLoading||!configured?'disabled':''}>${tr('chatSend')}</button></div></div>`;
+  const configured=!!CHAT_API_URL&&/\/chat$/.test(CHAT_API_URL),auth=globalThis.MezanAuth;
+  const profile=auth?.getProfile(),displayName=profile?.name||profile?.email,signedIn=!!auth?.isSignedIn();
+  const authState=signedIn?`${displayName?`<p class="hint">${tr('signedInAs')} ${escapeHtml(displayName)}</p>`:''}<div class="chat-thread" id="chatThread" aria-live="polite">${chatMessagesHtml()}${chatLoading?`<div class="chat-msg bot"><b>${tr('chatTitle')}</b><p>${tr('chatThinking')}</p></div>`:''}</div><div class="chat-input-row"><input id="chatQuestion" maxlength="300" placeholder="${tr('chatPlaceholder')}" ${chatLoading||!configured?'disabled':''}><button class="btn" onclick="sendChatMessage()" ${chatLoading||!configured?'disabled':''}>${tr('chatSend')}</button></div>`:`<div class="notice"><p>${chatAuthMessage||tr('chatSignInPrompt')}</p><button class="btn" onclick="startChatSignIn()">${tr('chatSignInButton')}</button></div>`;
+  $('chat').innerHTML=`<div class="card chat-card"><div class="section"><div><h3>${tr('chatTitle')}</h3><p class="copy">${tr('chatDesc')}</p></div><span class="section-icon">✦</span></div><p class="chat-privacy">${tr('chatPrivacyNote')}</p>${configured?'':`<div class="notice">${tr('chatNotConfigured')}</div>`}${authState}</div>`;
 }
 async function sendChatMessage(){
-  const input=$('chatQuestion'),question=input?.value.trim();
-  if(!question)return;
+  const input=$('chatQuestion'),question=input?.value.trim(),idToken=globalThis.MezanAuth?.getIdToken();
+  if(!question||!idToken)return;
   chatMessages.push({role:'user',text:question});
   chatLoading=true;renderChat();
   try{
-    const response=await fetch(CHAT_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:state.settings.chatUserId,lang:state.settings.lang,question,financialContext:buildFinancialContext()})});
+    const response=await fetch(CHAT_API_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${idToken}`},body:JSON.stringify({lang:state.settings.lang,question,financialContext:buildFinancialContext()})});
+    if(response.status===401){chatAuthMessage=tr('chatSessionExpired');MezanAuth.signOut();return}
     const data=await response.json().catch(()=>({}));
     chatMessages.push({role:'bot',text:data.answer||data.message||tr(response.status===429?'chatLimitReached':'chatError')});
   }catch{
@@ -346,6 +352,7 @@ async function sendChatMessage(){
     chatLoading=false;renderChat();
   }
 }
+MezanAuth.onChange(()=>{if(MezanAuth.isSignedIn())chatAuthMessage='';if(activeTab==='chat')renderChat()});
 function backupDue(){
   if(!state.expenses.length)return false;
   const today=parseDate(localDate()),last=parseDate(state.settings.lastBackupAt);

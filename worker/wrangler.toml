@@ -4,7 +4,7 @@ compatibility_date = "2024-09-01"
 
 [vars]
 # Google OAuth 2.0 web client ID used to verify Google ID tokens.
-GOOGLE_CLIENT_ID = "REPLACE_WITH_YOUR_GOOGLE_OAUTH_CLIENT_ID"
+GOOGLE_CLIENT_ID = "792973323075-7ujki7407gpuq5ttfn0va4q82eupf06r.apps.googleusercontent.com"
 # Set to "true" to immediately disable every AI request without a deploy.
 AI_KILL_SWITCH = "false"
 

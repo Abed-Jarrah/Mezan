@@ -74,7 +74,7 @@ test('assistant tab sends questions when worker is configured', async ({ page })
   await page.route('https://mezan-chat.mezan-finance.workers.dev/chat', async route => {
     const request = route.request();
     const payload = request.postDataJSON();
-    expect(payload.userId).toBe('mzn-e2e');
+    expect(request.headers().authorization).toBe('Bearer test-id-token');
     expect(payload.question).toBe('كم باقي من راتبي؟');
     await route.fulfill({
       status: 200,
@@ -93,6 +93,7 @@ test('assistant tab sends questions when worker is configured', async ({ page })
     }));
   });
   await page.reload();
+  await page.evaluate(() => MezanAuth.__setTestToken('test-id-token', { name: 'Tester', email: 't@example.com' }));
   await page.getByRole('button', { name: 'مساعد' }).click();
   await expect(page.getByRole('heading', { name: 'مساعد ميزان' })).toBeVisible();
   await expect(page.locator('#chatQuestion')).toBeEnabled();

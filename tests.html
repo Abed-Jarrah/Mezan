@@ -18,6 +18,7 @@
   <script src="js/translations.js?v=20260618-sec1"></script>
   <script src="js/currency.js?v=20260618-sec1"></script>
   <script src="js/ui.js?v=20260618-sec1"></script>
+  <script src="js/auth.js?v=20260619-auth1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -47,6 +48,12 @@
     }
 
     test('تعقيم HTML', () => equal(MezanUI.escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;'));
+    test('فك حمولة JWT للعرض فقط', () => {
+      const profile = MezanAuth.decodeIdTokenForDisplay('header.eyJuYW1lIjoiVGVzdGVyIiwiZW1haWwiOiJ0QGV4YW1wbGUuY29tIiwicGljdHVyZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vcGljLmpwZyJ9.signature');
+      equal(profile.name, 'Tester');
+      equal(profile.email, 't@example.com');
+    });
+    test('فك JWT غير صالح للعرض لا يرمي خطأ', () => equal(MezanAuth.decodeIdTokenForDisplay('invalid'), null));
     test('تنظيف الأرقام', () => equal(MezanCalculations.number('1,250.50'), 1250.5));
     test('حساب النسبة', () => equal(MezanCalculations.percent(250, 1000), 25));
     test('رمز العملة حسب اللغة', () => {
