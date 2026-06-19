@@ -22,9 +22,11 @@
     notify();
   }
   function init(){
-    if(initialized||!global.google?.accounts?.id)return false;
-    global.google.accounts.id.initialize({client_id:CLIENT_ID,callback:response=>setToken(response?.credential)});
-    initialized=true;
+    if(!global.google?.accounts?.id)return false;
+    if(!initialized){
+      global.google.accounts.id.initialize({client_id:CLIENT_ID,callback:response=>setToken(response?.credential)});
+      initialized=true;
+    }
     return true;
   }
   function signIn(){
