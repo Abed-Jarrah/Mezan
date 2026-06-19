@@ -5,6 +5,8 @@ compatibility_date = "2024-09-01"
 [vars]
 # Google OAuth 2.0 web client ID used to verify Google ID tokens.
 GOOGLE_CLIENT_ID = "REPLACE_WITH_YOUR_GOOGLE_OAUTH_CLIENT_ID"
+# Set to "true" to immediately disable every AI request without a deploy.
+AI_KILL_SWITCH = "false"
 
 [ai]
 binding = "AI"
@@ -12,3 +14,11 @@ binding = "AI"
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[[durable_objects.bindings]]
+name = "AI_BUDGET"
+class_name = "AiBudget"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AiBudget"]

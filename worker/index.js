@@ -1,11 +1,15 @@
 import { verifyGoogleIdToken } from './verify.mjs';
+import {
+  MAX_CONTEXT_LENGTH,
+  MAX_IP_QUESTIONS,
+  MAX_OUTPUT_TOKENS,
+  MAX_QUESTION_LENGTH,
+  WORST_CASE_NEURONS
+} from './ai-config.mjs';
+export { AiBudget } from './budget.mjs';
 
 const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
-const MAX_QUESTIONS = 5;
-const MAX_IP_QUESTIONS = 60;
 const WINDOW_MS = 24 * 60 * 60 * 1000;
-const MAX_QUESTION_LENGTH = 300;
-const MAX_CONTEXT_LENGTH = 1500;
 const ALLOWED_ORIGINS = new Set(['https://abed-jarrah.github.io']);
 
 const SYSTEM_PROMPT = {
@@ -57,6 +61,21 @@ async function incrementRateLimit(kv, key, record) {
   }), { expirationTtl: 90000 });
 }
 
+async function callBudget(env, operation, payload) {
+  const stub = env.AI_BUDGET.get(env.AI_BUDGET.idFromName('global'));
+  const response = await stub.fetch('https://ai-budget.internal/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operation, ...payload })
+  });
+  if (!response.ok) throw new Error('AI budget operation failed');
+  return response.json();
+}
+
+function aiKillSwitchEnabled(env) {
+  return String(env.AI_KILL_SWITCH || '').toLowerCase() === 'true';
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') {
@@ -80,7 +99,7 @@ export default {
     const financialContext = typeof payload.financialContext === 'string' ? payload.financialContext.slice(0, MAX_CONTEXT_LENGTH) : '';
     const lang = payload.lang === 'en' ? 'en' : 'ar';
 
-    if (!env.AI || !env.RATE_LIMIT || !env.GOOGLE_CLIENT_ID) {
+    if (!env.AI || !env.AI_BUDGET || !env.RATE_LIMIT || !env.GOOGLE_CLIENT_ID) {
       return jsonResponse(request, { error: 'worker_not_configured' }, 500);
     }
     if (!question) {
@@ -96,27 +115,55 @@ export default {
       return jsonResponse(request, { error: 'unauthorized' }, 401);
     }
 
+    // This environment-level switch bypasses every downstream dependency immediately.
+    if (aiKillSwitchEnabled(env)) {
+      return jsonResponse(request, { error: 'ai_unavailable' }, 503);
+    }
+
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const userLimit = await readRateLimit(env.RATE_LIMIT, `user:${identity.sub}`, MAX_QUESTIONS);
     const ipLimit = await readRateLimit(env.RATE_LIMIT, `ip:${ip}`, MAX_IP_QUESTIONS);
-    if (!userLimit.allowed || !ipLimit.allowed) {
+    if (!ipLimit.allowed) {
       return jsonResponse(request, { message: LIMIT_MESSAGE[lang] }, 429);
     }
 
+    let reservation;
     try {
-      const result = await env.AI.run(MODEL, {
+      reservation = await callBudget(env, 'reserve', { sub: identity.sub, cost: WORST_CASE_NEURONS });
+    } catch {
+      // The budget service is the authoritative gate, so an unavailable gate fails closed.
+      return jsonResponse(request, { error: 'ai_unavailable' }, 503);
+    }
+    if (!reservation.ok) {
+      if (reservation.reason === 'killed') {
+        return jsonResponse(request, { error: 'ai_unavailable' }, 503);
+      }
+      return jsonResponse(request, { message: LIMIT_MESSAGE[lang] }, 429);
+    }
+
+    let result;
+    try {
+      result = await env.AI.run(MODEL, {
         messages: [
           { role: 'system', content: SYSTEM_PROMPT[lang] },
           { role: 'user', content: `${financialContext}\n\n${question}` }
-        ]
+        ],
+        max_tokens: MAX_OUTPUT_TOKENS
       });
-      await Promise.all([
-        incrementRateLimit(env.RATE_LIMIT, `user:${identity.sub}`, userLimit.record),
-        incrementRateLimit(env.RATE_LIMIT, `ip:${ip}`, ipLimit.record)
-      ]);
-      return jsonResponse(request, { answer: result.response || '' });
     } catch {
+      try {
+        await callBudget(env, 'release', { sub: identity.sub, cost: WORST_CASE_NEURONS });
+      } catch {
+        // Preserve the model failure response; the durable budget remains fail-closed on refund failure.
+      }
       return jsonResponse(request, { error: 'ai_error' }, 502);
     }
+
+    // Keep the IP limit as a cheap, redundant pre-filter. The DO owns verified-user fairness.
+    try {
+      await incrementRateLimit(env.RATE_LIMIT, `ip:${ip}`, ipLimit.record);
+    } catch {
+      // The successful model call remains charged by the DO even if this optional pre-filter update fails.
+    }
+    return jsonResponse(request, { answer: result.response || '' });
   }
 };
