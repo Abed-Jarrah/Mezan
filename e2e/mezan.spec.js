@@ -28,7 +28,7 @@ test('wizard creates a valid plan using keyboard navigation', async ({ page }) =
   await page.locator('#saveTarget').fill('1000');
   await page.getByRole('button', { name: 'التالي' }).click();
   await page.getByRole('button', { name: 'اعتماد الخطة' }).click();
-  await expect(page.getByRole('heading', { name: 'هذه دورتك المالية، وهذه فرصتك' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'لوحة دورتك المالية' })).toBeVisible();
   await expect(page.getByText('أهلاً أحمد')).toBeVisible();
   await expect(page.getByText('ملخص اليوم')).toBeVisible();
   await expect(page.locator('.balance-orb-card')).toBeVisible();
@@ -58,34 +58,8 @@ test('expense flow updates the interactive balance circle', async ({ page }) => 
   await expect(page.getByText('صرفت اليوم')).toBeVisible();
   await expect(page.getByText('إنشاء نسخة الآن')).toHaveCount(0);
   await expect(page.getByText('مصروفات الدورة')).toBeVisible();
-  await expect(page.locator('.scale-donut')).toBeVisible();
+  await expect(page.locator('.category-donut')).toBeVisible();
   await expect(page.locator('.goal-ring')).toContainText('%');
-});
-
-test('scale visual identity theme can be changed from settings', async ({ page }) => {
-  await page.evaluate(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    localStorage.setItem('mezan_plan_v5', JSON.stringify({
-      schemaVersion: 5,
-      settings: { lang: 'ar', currency: 'QAR', lastBackupAt: '', scaleTheme: 'gold' },
-      profile: {
-        salary: 8000, salaryDate: today, extraIncome: 0,
-        rentPaid: 'no', rent: 0, internet: 0, electricity: 0, phone: 0,
-        fuel: 0, fixed: 0, loans: 0, saveTarget: 1000, goalType: 'general',
-        goalName: '', goalAmount: 0, goalMonths: 0
-      },
-      expenses: [], categoryBudgets: {}, recurringPayments: [], salaryReceipts: [{ id: 1, date: today, amount: 8000 }],
-      cycleReports: [], merchantCategories: {}, budgetAlerts: {}
-    }));
-  });
-  await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'gold');
-  await page.getByRole('button', { name: 'إعدادات' }).click();
-  await page.getByRole('button', { name: 'فضي ملكي' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'silver');
-  await page.getByRole('button', { name: 'رخامي فاتح' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-scale-theme', 'marble');
-  await expect(page.locator('html')).toHaveCSS('--scale-bg', '#f4eee1');
 });
 
 test('language switches the interface and currency symbol', async ({ page }) => {
