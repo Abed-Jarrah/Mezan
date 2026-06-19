@@ -19,6 +19,14 @@ id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
 name = "AI_BUDGET"
 class_name = "AiBudget"
 
+[[durable_objects.bindings]]
+name = "SYNC_LEASE"
+class_name = "SyncLease"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["AiBudget"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["SyncLease"]

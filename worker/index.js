@@ -9,9 +9,11 @@ import {
   WORST_CASE_NEURONS
 } from './ai-config.mjs';
 export { AiBudget } from './budget.mjs';
+export { SyncLease } from './lease.mjs';
 
 const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
 const WINDOW_MS = 24 * 60 * 60 * 1000;
+const LEASE_MS = 5 * 60 * 1000;
 const ALLOWED_ORIGINS = new Set(['https://abed-jarrah.github.io', 'http://localhost:8080']);
 
 const SYSTEM_PROMPT = {
@@ -74,6 +76,17 @@ async function callBudget(env, operation, payload) {
   return response.json();
 }
 
+async function callLease(env, sub, payload) {
+  const stub = env.SYNC_LEASE.get(env.SYNC_LEASE.idFromName(sub));
+  const response = await stub.fetch('https://sync-lease.internal/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error('Sync lease operation failed');
+  return response.json();
+}
+
 function aiKillSwitchEnabled(env) {
   return String(env.AI_KILL_SWITCH || '').toLowerCase() === 'true';
 }
@@ -102,11 +115,37 @@ export default {
       return jsonResponse(request, { error: 'origin_not_allowed' }, 403);
     }
 
+    const pathname = new URL(request.url).pathname;
+
     let payload;
     try {
       payload = await request.json();
     } catch {
       return jsonResponse(request, { error: 'invalid_json' }, 400);
+    }
+
+    if (pathname === '/lease') {
+      if (!env.SYNC_LEASE || !env.GOOGLE_CLIENT_ID) {
+        return jsonResponse(request, { error: 'worker_not_configured' }, 500);
+      }
+      const deviceId = typeof payload.deviceId === 'string' ? payload.deviceId.trim() : '';
+      const operation = payload.operation;
+      if (!deviceId || !['acquire', 'renew', 'release'].includes(operation)) {
+        return jsonResponse(request, { error: 'missing_fields' }, 400);
+      }
+      const authorization = request.headers.get('Authorization');
+      const idToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+      let identity;
+      try {
+        identity = await verifyGoogleIdToken(idToken, env);
+      } catch {
+        return jsonResponse(request, { error: 'unauthorized' }, 401);
+      }
+      try {
+        return jsonResponse(request, await callLease(env, identity.sub, { operation, deviceId, now: Date.now(), leaseMs: LEASE_MS }));
+      } catch {
+        return jsonResponse(request, { error: 'lease_unavailable' }, 503);
+      }
     }
 
     const question = typeof payload.question === 'string' ? payload.question.trim().slice(0, MAX_QUESTION_LENGTH) : '';
