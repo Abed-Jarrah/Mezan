@@ -35,14 +35,23 @@
       try{global.google.accounts.id.prompt()}catch(error){signInResolvers.splice(signInResolvers.findIndex(item=>item.resolve===resolve),1);reject(error)}
     });
   }
+  function renderButton(container,options){
+    if(!container||idToken||!init())return false;
+    try{
+      global.google.accounts.id.renderButton(container,Object.assign({type:'standard',theme:'filled_blue',size:'large',shape:'pill',text:'signin_with'},options||{}));
+      return true;
+    }catch{return false}
+  }
   function signOut(){
     idToken=null;profile=null;
     global.google?.accounts?.id?.disableAutoSelect?.();
     global.localStorage?.removeItem('mezan_google_profile');
     notify();
   }
-  global.MezanAuth={CLIENT_ID,init,signIn,getIdToken:()=>idToken,isSignedIn:()=>!!idToken,getProfile:()=>profile,onChange(callback){listeners.add(callback);return()=>listeners.delete(callback)},signOut,decodeIdTokenForDisplay,
+  global.MezanAuth={CLIENT_ID,init,signIn,renderButton,getIdToken:()=>idToken,isSignedIn:()=>!!idToken,getProfile:()=>profile,onChange(callback){listeners.add(callback);return()=>listeners.delete(callback)},signOut,decodeIdTokenForDisplay,
     // Test-only seam. Do not use this to authenticate a production user.
     __setTestToken(token,displayProfile){setToken(token,displayProfile||null)}
   };
+  // GIS loads async/defer; this hook fires when it's ready so the UI can re-render and draw the button.
+  global.onGoogleLibraryLoad=function(){init();notify()};
 })(window);

@@ -329,12 +329,12 @@ function chatMessagesHtml(){
   const chips=chatSamples().map(q=>`<button class="chat-sample" onclick="askSample('${q}')">${escapeHtml(q)}</button>`).join('');
   return `<div class="chat-empty"><p>${tr('chatEmpty')}</p><div class="chat-samples">${chips}</div></div>`;
 }
-async function startChatSignIn(){try{await MezanAuth.signIn()}catch{renderChat()}}
 function renderChat(){
   const configured=!!CHAT_API_URL&&/\/chat$/.test(CHAT_API_URL),auth=globalThis.MezanAuth;
   const profile=auth?.getProfile(),displayName=profile?.name||profile?.email,signedIn=!!auth?.isSignedIn();
-  const authState=signedIn?`${displayName?`<p class="hint">${tr('signedInAs')} ${escapeHtml(displayName)}</p>`:''}<div class="chat-thread" id="chatThread" aria-live="polite">${chatMessagesHtml()}${chatLoading?`<div class="chat-msg bot"><b>${tr('chatTitle')}</b><p>${tr('chatThinking')}</p></div>`:''}</div><div class="chat-input-row"><input id="chatQuestion" maxlength="300" placeholder="${tr('chatPlaceholder')}" ${chatLoading||!configured?'disabled':''}><button class="btn" onclick="sendChatMessage()" ${chatLoading||!configured?'disabled':''}>${tr('chatSend')}</button></div>`:`<div class="notice"><p>${chatAuthMessage||tr('chatSignInPrompt')}</p><button class="btn" onclick="startChatSignIn()">${tr('chatSignInButton')}</button></div>`;
+  const authState=signedIn?`${displayName?`<p class="hint">${tr('signedInAs')} ${escapeHtml(displayName)}</p>`:''}<div class="chat-thread" id="chatThread" aria-live="polite">${chatMessagesHtml()}${chatLoading?`<div class="chat-msg bot"><b>${tr('chatTitle')}</b><p>${tr('chatThinking')}</p></div>`:''}</div><div class="chat-input-row"><input id="chatQuestion" maxlength="300" placeholder="${tr('chatPlaceholder')}" ${chatLoading||!configured?'disabled':''}><button class="btn" onclick="sendChatMessage()" ${chatLoading||!configured?'disabled':''}>${tr('chatSend')}</button></div>`:`<div class="notice"><p>${chatAuthMessage||tr('chatSignInPrompt')}</p><div id="googleSignInBtn" class="gsi-container"></div></div>`;
   $('chat').innerHTML=`<div class="card chat-card"><div class="section"><div><h3>${tr('chatTitle')}</h3><p class="copy">${tr('chatDesc')}</p></div><span class="section-icon">✦</span></div><p class="chat-privacy">${tr('chatPrivacyNote')}</p>${configured?'':`<div class="notice">${tr('chatNotConfigured')}</div>`}${authState}</div>`;
+  if(!signedIn)requestAnimationFrame(()=>auth?.renderButton?.($('googleSignInBtn')));
 }
 async function sendChatMessage(){
   const input=$('chatQuestion'),question=input?.value.trim(),idToken=globalThis.MezanAuth?.getIdToken();
