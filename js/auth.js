@@ -1,7 +1,8 @@
 (function(global){
   const CLIENT_ID='792973323075-7ujki7407gpuq5ttfn0va4q82eupf06r.apps.googleusercontent.com';
-  let initialized=false,idToken=null,profile=null;
+  let initialized=false,tokenClient=null,idToken=null,driveToken=null,profile=null;
   const listeners=new Set(),signInResolvers=[];
+  let driveTokenResolver=null;
 
   function decodeIdTokenForDisplay(token){
     if(typeof token!=='string')return null;
@@ -29,6 +30,25 @@
     }
     return true;
   }
+  function initDriveTokenClient(){
+    if(!global.google?.accounts?.oauth2?.initTokenClient)return false;
+    if(!tokenClient){
+      tokenClient=global.google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata',callback:response=>{
+        const resolver=driveTokenResolver;driveTokenResolver=null;
+        if(response?.access_token){driveToken=response.access_token;resolver?.resolve(driveToken)}
+        else resolver?.reject(new Error(response?.error||'Google Drive authorization failed'));
+      }});
+    }
+    return true;
+  }
+  function requestDriveToken(){
+    if(driveToken)return Promise.resolve(driveToken);
+    if(!initDriveTokenClient())return Promise.reject(new Error('Google Drive authorization is unavailable'));
+    return new Promise((resolve,reject)=>{
+      driveTokenResolver={resolve,reject};
+      try{tokenClient.requestAccessToken()}catch(error){driveTokenResolver=null;reject(error)}
+    });
+  }
   function signIn(){
     if(idToken)return Promise.resolve(idToken);
     if(!init())return Promise.reject(new Error('Google sign-in is unavailable'));
@@ -45,12 +65,13 @@
     }catch{return false}
   }
   function signOut(){
-    idToken=null;profile=null;
+    idToken=null;driveToken=null;profile=null;
+    if(driveTokenResolver){driveTokenResolver.reject(new Error('Signed out'));driveTokenResolver=null}
     global.google?.accounts?.id?.disableAutoSelect?.();
     global.localStorage?.removeItem('mezan_google_profile');
     notify();
   }
-  global.MezanAuth={CLIENT_ID,init,signIn,renderButton,getIdToken:()=>idToken,isSignedIn:()=>!!idToken,getProfile:()=>profile,onChange(callback){listeners.add(callback);return()=>listeners.delete(callback)},signOut,decodeIdTokenForDisplay,
+  global.MezanAuth={CLIENT_ID,init,signIn,renderButton,requestDriveToken,getDriveToken:()=>driveToken,getIdToken:()=>idToken,isSignedIn:()=>!!idToken,getProfile:()=>profile,onChange(callback){listeners.add(callback);return()=>listeners.delete(callback)},signOut,decodeIdTokenForDisplay,
     // Test-only seam. Do not use this to authenticate a production user.
     __setTestToken(token,displayProfile){setToken(token,displayProfile||null)}
   };

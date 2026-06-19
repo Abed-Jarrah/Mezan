@@ -19,6 +19,7 @@
   <script src="js/currency.js?v=20260618-sec1"></script>
   <script src="js/ui.js?v=20260618-sec1"></script>
   <script src="js/auth.js?v=20260619-auth1"></script>
+  <script src="js/drive.js?v=20260620-drive1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -432,6 +433,18 @@
       equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: false }, { revisionId: null }), 'fresh');
       equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: false }, { revisionId: 'r1' }), 'remote_ahead');
       equal(MezanSync.detectConflict({ baseRevisionId: null, hasLocalEdits: true }, { revisionId: 'r1' }), 'conflict');
+    });
+    test('Drive list query encodes the appDataFolder filename filter', () => {
+      const query = MezanDrive.buildListQuery();
+      equal(query.includes('spaces=appDataFolder'), true);
+      equal(query.includes('q=name%3D%27mezan-vault.json%27'), true);
+    });
+    test('Drive multipart body includes metadata boundary and JSON content', () => {
+      const boundary = 'mezan-test-boundary';
+      const body = MezanDrive.buildMultipartBody({ name: 'mezan-vault.json', parents: ['appDataFolder'] }, '{"version":1}', boundary);
+      equal(body.includes(`--${boundary}`), true);
+      equal(body.includes('{"name":"mezan-vault.json","parents":["appDataFolder"]}'), true);
+      equal(body.includes('{"version":1}'), true);
     });
   </script>
 </body>
