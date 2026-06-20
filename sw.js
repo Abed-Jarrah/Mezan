@@ -1,5 +1,5 @@
-const VERSION = '20260620-syncfix2';
-const CACHE = `mezan-v30-${VERSION}`;
+const VERSION = '20260620-aiadd1';
+const CACHE = `mezan-v31-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,7 @@ const ASSETS = [
   `./js/sync.js?v=${VERSION}`,
   `./js/lease.js?v=${VERSION}`,
   `./js/drive.js?v=${VERSION}`,
+  `./js/chat-proposal.js?v=${VERSION}`,
   `./js/app.js?v=${VERSION}`,
   './assets/fonts/plex-arabic-400.ttf',
   './assets/fonts/plex-arabic-500.ttf',
