@@ -1,5 +1,5 @@
-const VERSION = '20260620-lease1';
-const CACHE = `mezan-v27-${VERSION}`;
+const VERSION = '20260620-autosync1';
+const CACHE = `mezan-v28-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
