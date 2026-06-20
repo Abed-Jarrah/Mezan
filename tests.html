@@ -20,6 +20,7 @@
   <script src="js/ui.js?v=20260618-sec1"></script>
   <script src="js/auth.js?v=20260619-auth1"></script>
   <script src="js/drive.js?v=20260620-drive1"></script>
+  <script src="js/chat-proposal.js?v=20260620-aiadd1"></script>
   <script>
     const results = document.getElementById('results');
     function test(name, run) {
@@ -47,6 +48,36 @@
       }
       throw new Error('Expected function to throw');
     }
+
+    test('AI expense proposal parser accepts fenced add-expense JSON', () => {
+      const proposal = MezanChat.parseExpenseProposal('```json\n{"action":"add_expense","amount":50,"merchant":"Lunch","category":"food","date":"2026-06-20"}\n```', {
+        number: MezanCalculations.number, today: '2026-06-20', validDate: date => date === '2026-06-20', classify: () => 'other'
+      });
+      equal(proposal.amount, 50);
+      equal(proposal.merchant, 'Lunch');
+      equal(proposal.category, 'food');
+      equal(proposal.date, '2026-06-20');
+    });
+    test('AI expense proposal parser accepts bare JSON', () => {
+      const proposal = MezanChat.parseExpenseProposal('{"action":"add_expense","amount":"30","merchant":"Fuel","category":"transport","date":""}', {
+        number: MezanCalculations.number, today: '2026-06-20', validDate: () => true, classify: () => 'other'
+      });
+      equal(proposal.amount, 30);
+      equal(proposal.date, '2026-06-20');
+    });
+    test('AI expense proposal parser rejects malformed and non-add output', () => {
+      const options = { number: MezanCalculations.number, today: '2026-06-20', validDate: () => true, classify: () => 'other' };
+      equal(MezanChat.parseExpenseProposal('```json\n{bad}\n```', options), null);
+      equal(MezanChat.parseExpenseProposal('{"action":"delete_expense","amount":30}', options), null);
+    });
+    test('AI expense proposal parser normalizes invalid category and date', () => {
+      const proposal = MezanChat.parseExpenseProposal('{"action":"add_expense","amount":"12.5","merchant":"  Metro  ","category":"unknown","date":"2026-02-30"}', {
+        number: MezanCalculations.number, today: '2026-06-20', validDate: date => date === '2026-06-20', classify: merchant => merchant === 'Metro' ? 'transport' : 'other'
+      });
+      equal(proposal.category, 'transport');
+      equal(proposal.date, '2026-06-20');
+      equal(proposal.merchant, 'Metro');
+    });
 
     test('تعقيم HTML', () => equal(MezanUI.escapeHtml('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;'));
     test('فك حمولة JWT للعرض فقط', () => {
