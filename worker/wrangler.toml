@@ -2,9 +2,31 @@ name = "mezan-chat"
 main = "index.js"
 compatibility_date = "2024-09-01"
 
+[vars]
+# Google OAuth 2.0 web client ID used to verify Google ID tokens.
+GOOGLE_CLIENT_ID = "792973323075-7ujki7407gpuq5ttfn0va4q82eupf06r.apps.googleusercontent.com"
+# Set to "true" to immediately disable every AI request without a deploy.
+AI_KILL_SWITCH = "false"
+
 [ai]
 binding = "AI"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[[durable_objects.bindings]]
+name = "AI_BUDGET"
+class_name = "AiBudget"
+
+[[durable_objects.bindings]]
+name = "SYNC_LEASE"
+class_name = "SyncLease"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AiBudget"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["SyncLease"]

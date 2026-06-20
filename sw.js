@@ -1,5 +1,5 @@
-const VERSION = '20260621-finance3';
-const CACHE = `mezan-v19-${VERSION}`;
+const VERSION = '20260620-autosync1';
+const CACHE = `mezan-v28-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,10 @@ const ASSETS = [
   `./js/translations.js?v=${VERSION}`,
   `./js/currency.js?v=${VERSION}`,
   `./js/ui.js?v=${VERSION}`,
+  `./js/auth.js?v=${VERSION}`,
+  `./js/sync.js?v=${VERSION}`,
+  `./js/lease.js?v=${VERSION}`,
+  `./js/drive.js?v=${VERSION}`,
   `./js/app.js?v=${VERSION}`,
   './assets/fonts/plex-arabic-400.ttf',
   './assets/fonts/plex-arabic-500.ttf',

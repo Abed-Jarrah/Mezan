@@ -7,14 +7,15 @@
   <meta name="theme-color" content="#0F172A" />
   <meta name="description" content="ميزان يساعدك على إدارة راتبك ومصاريفك من دورة راتب إلى الدورة التالية." />
   <title>ميزان | Mezan</title>
-  <link rel="manifest" href="manifest.webmanifest?v=20260621-finance3" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260620-autosync1" />
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="css/variables.css?v=20260621-finance3" />
-  <link rel="stylesheet" href="css/layout.css?v=20260621-finance3" />
-  <link rel="stylesheet" href="css/components.css?v=20260621-finance3" />
-  <link rel="stylesheet" href="css/responsive.css?v=20260621-finance3" />
-  <link rel="stylesheet" href="css/splash.css?v=20260621-finance3" />
+  <link rel="stylesheet" href="css/variables.css?v=20260620-autosync1" />
+  <link rel="stylesheet" href="css/layout.css?v=20260620-autosync1" />
+  <link rel="stylesheet" href="css/components.css?v=20260620-autosync1" />
+  <link rel="stylesheet" href="css/responsive.css?v=20260620-autosync1" />
+  <link rel="stylesheet" href="css/splash.css?v=20260620-autosync1" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="splash" id="splash" aria-hidden="true">
@@ -32,11 +33,15 @@
 <section id="appArea" class="hidden"><div id="dashboard" class="panel"></div><div id="expense" class="panel hidden"></div><div id="budget" class="panel hidden"></div><div id="chat" class="panel hidden"></div><div id="settings" class="panel hidden"></div></section>
 </main>
 <nav class="tabs hidden" id="tabs" aria-label="Main navigation"><div class="tabsin"><button class="tab active" data-tab="dashboard" onclick="showTab('dashboard')" aria-current="page"><span class="tabicon" aria-hidden="true">⌂</span><span data-i18n="home">الرئيسية</span></button><button class="tab" data-tab="expense" onclick="showTab('expense')"><span class="tabicon" aria-hidden="true">＋</span><span data-i18n="expense">مصروف</span></button><button class="tab" data-tab="budget" onclick="showTab('budget')"><span class="tabicon" aria-hidden="true">◔</span><span data-i18n="plan">الخطة</span></button><button class="tab" data-tab="chat" onclick="showTab('chat')"><span class="tabicon" aria-hidden="true">✦</span><span data-i18n="chat">مساعد</span></button><button class="tab" data-tab="settings" onclick="showTab('settings')"><span class="tabicon" aria-hidden="true">⚙</span><span data-i18n="settings">إعدادات</span></button></div></nav>
-  <script src="js/storage.js?v=20260621-finance3"></script>
-  <script src="js/calculations.js?v=20260621-finance3"></script>
-  <script src="js/translations.js?v=20260621-finance3"></script>
-  <script src="js/currency.js?v=20260621-finance3"></script>
-  <script src="js/ui.js?v=20260621-finance3"></script>
-  <script src="js/app.js?v=20260621-finance3"></script>
+  <script src="js/storage.js?v=20260620-autosync1"></script>
+  <script src="js/calculations.js?v=20260620-autosync1"></script>
+  <script src="js/translations.js?v=20260620-autosync1"></script>
+  <script src="js/currency.js?v=20260620-autosync1"></script>
+  <script src="js/ui.js?v=20260620-autosync1"></script>
+  <script src="js/auth.js?v=20260620-autosync1"></script>
+  <script src="js/sync.js?v=20260620-autosync1"></script>
+  <script src="js/lease.js?v=20260620-autosync1"></script>
+  <script src="js/drive.js?v=20260620-autosync1"></script>
+  <script src="js/app.js?v=20260620-autosync1"></script>
 </body>
 </html>
