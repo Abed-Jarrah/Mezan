@@ -78,3 +78,6 @@ const MezanDrive = (() => {
 
   return { FILE_NAME, buildListQuery, buildMultipartBody, findFile, readFile, createFile, updateFile, saveVault };
 })();
+// Expose on the global so other scripts can feature-detect via globalThis.MezanDrive
+// (a top-level `const` does not become a property of globalThis in a classic script).
+globalThis.MezanDrive = MezanDrive;

@@ -115,3 +115,6 @@ const MezanSync = (() => {
 
   return { SCHEMA_VERSION, checksum, wrap, unwrap, migrate, nextRev, detectConflict };
 })();
+// Expose on the global so other scripts can feature-detect via globalThis.MezanSync
+// (a top-level `const` does not become a property of globalThis in a classic script).
+globalThis.MezanSync = MezanSync;
